@@ -24,9 +24,11 @@ class Block:
         self.children.append(child)
 
 class Simulation:
-    def __init__(self, players, payoff, step_nr):
+    def __init__(self, players, payoff, step_nr, alpha=1, beta=1):
         self.players = players
         self.step_nr = step_nr
+        self.alpha = alpha
+        self.beta = beta
         self.tot_h = reduce(lambda x, y: x + y, map(lambda x: x.h, players))
         self.tree = Block(None, None, 0)
         self.bc_blocks = {self.tree}
@@ -63,7 +65,20 @@ class Simulation:
         for _ in tqdm(range(self.step_nr)):
             self.step()
 
-        self.calc_payoff()
+        while len(self.bc_blocks) > 1:
+            self.bc_depth -= 1
+            new_blocks = set()
+
+            for block in self.bc_blocks:
+                new_blocks.add(block.parent)
+
+            self.bc_blocks = new_blocks
+
+        payoff_dict = self.calc_payoff(self.bc_blocks.pop(), self.tree)
+
+        for player in self.players:
+            player.block_number = payoff_dict[player]["block_number"]
+            player.payoff = payoff_dict[player]["payoff"]
 
     def print_results(self):
         tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x.block_number, self.players))

@@ -4,13 +4,14 @@ from types import MethodType
 def default_strat(self, tree, bc_blocks, bc_depth):
     sel_block = None
 
+    block_payoff = {block: {} for block in bc_blocks}
+
     for block in bc_blocks:
         if block.owner == self:
             sel_block = block
     
     if sel_block is None:
         sel_block = bc_blocks.pop()
-        bc_blocks.add(sel_block)
 
     return sel_block
 
