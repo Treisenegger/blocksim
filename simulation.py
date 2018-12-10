@@ -45,7 +45,7 @@ class Simulation:
             else:
                 rand_player -= player.h
         
-        parent_block = owner.strat(self.tree, self.bc_blocks, self.bc_depth)
+        parent_block = owner.strat(self.tree, self.bc_blocks, self.bc_depth, self)
 
         for child in parent_block.children:
             if child.owner == owner:

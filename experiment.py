@@ -10,12 +10,12 @@ if __name__ == "__main__":
         players.append(Player(str(i), i, default_strat))
     
 
-    players.append(Player("4", 7, always_fork_strat))
+    players.append(Player("4", 6, always_fork_strat))
 
     # players.append(Player("1", 2, one_fork_giveup_strat))
     # players.append(Player("2", 1, default_strat))
     
-    sim = Simulation(players, alpha_payoff, 1000, alpha=0.999999)
+    sim = Simulation(players, alpha_payoff, 30, alpha=0.999999)
     sim.simulate()
     sim.print_results()
-    # sim.print_struct()
+    sim.print_struct()
