@@ -1,6 +1,7 @@
 def default_strat(self, payoff):
-    if self.mining in self.struct.deep_blocks:
-        return self.mining
+    if len(self.hidden_blocks) > 0:
+        return self.hidden_blocks[-1]
+
 
     sel_block = None
 

@@ -1,21 +1,17 @@
 from simulation import Player, Simulation
-from strategies import default_strat, one_fork_giveup_strat, always_fork_strat
-from payoff import alpha_payoff
+from payoff import constant_payoff
+from pub_strategies import catch_up
 
 
 if __name__ == "__main__":
     players = []
 
     for i in range(1, 4):
-        players.append(Player(str(i), i, default_strat))
-    
+        players.append(Player(str(i), i))
 
-    players.append(Player("4", 6, always_fork_strat))
-
-    # players.append(Player("1", 2, one_fork_giveup_strat))
-    # players.append(Player("2", 1, default_strat))
+    players.append(Player('4', 4, dec_publish=catch_up))
     
-    sim = Simulation(players, alpha_payoff, 30, alpha=0.999999)
+    sim = Simulation(players, constant_payoff, 30)
     sim.simulate()
     sim.print_results()
     sim.print_struct()
