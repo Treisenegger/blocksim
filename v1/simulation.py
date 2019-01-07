@@ -1,9 +1,13 @@
-from tqdm import tqdm
+import numpy as np
+
 from types import MethodType
 from functools import reduce
-from tree_format import format_tree
-import numpy as np
 from random import randint
+
+from tqdm import tqdm
+
+from tree_format import format_tree
+
 from pub_strategies import default_pub_strat
 from place_strategies import default_strat
 
