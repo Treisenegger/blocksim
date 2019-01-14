@@ -1,16 +1,14 @@
-def default_pub_strat(self, block, payoff, end=False):
-    if end:
-        return True
-        
-    self.hidden_blocks.remove(block)
-    return True
+def default_pub_strat(self, payoff, end=False):
+    prev_blocks = self.hidden_blocks
+    self.hidden_blocks = []
+    return set(prev_blocks)
 
-def catch_up(self, block, payoff, end=False):
+def catch_up(self, payoff, end=False):
     if end:
-        return True
-
-    if self.struct.depth >= block.depth:
-        self.hidden_blocks.remove(block)
-        return True
+        prev_hidden = self.hidden_blocks
+        self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
+        return set(filter(lambda x: not x.parent.hidden, prev_hidden))
     else:
-        return False
+        prev_hidden = self.hidden_blocks
+        self.hidden_blocks = list(filter(lambda x: x.parent.hidden or self.struct.depth < x.depth, self.hidden_blocks))
+        return set(filter(lambda x: not x.parent.hidden and self.struct.depth >= x.depth, prev_hidden))

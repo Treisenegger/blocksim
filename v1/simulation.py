@@ -10,15 +10,19 @@ from tree_format import format_tree
 
 from pub_strategies import default_pub_strat
 from place_strategies import default_strat
+from inf_strategies import default_inf_strat
+from payoff import constant_payoff, alpha_beta_payoff
 
 
 class Player:
-    def __init__(self, name, h, strat=default_strat, dec_publish=default_pub_strat):
+    def __init__(self, name, h, strat=default_strat, publish=default_pub_strat, inform=default_inf_strat):
         self.name = name
         self.h = h
         self.strat = MethodType(strat, self)
-        self.dec_publish = MethodType(dec_publish, self)
+        self.publish = MethodType(publish, self)
+        self.inform = MethodType(inform, self)
         self.hidden_blocks = []
+        self.known_blocks = []
         self.additional_info = dict()
 
     def add_hidden_block(self, block):
@@ -26,6 +30,9 @@ class Player:
 
     def delete_hidden_block(self, block):
         self.hidden_blocks.remove(block)
+    
+    def add_known_block(self, block):
+        self.known_blocks.append(block)
 
 
 class Block:
@@ -69,7 +76,7 @@ class Structure:
         
 
 class Simulation:
-    def __init__(self, players, payoff, step_nr):
+    def __init__(self, players, step_nr, payoff=alpha_beta_payoff(1, 1)):
         self.players = players
         self.calc_payoff = payoff
         self.step_nr = step_nr
@@ -85,30 +92,34 @@ class Simulation:
         owner.add_hidden_block(new_block)
 
     def check_publishable(self, player):
-        change = False
-        publishable = []
-        for block in filter(lambda x: x.owner == player, self.hidden_blocks):
-            if not block.parent.hidden and player.dec_publish(block, self.calc_payoff):
-                publishable.append(block)
-                change = True
-
-        for block in publishable:
-            self.struct.add_block(block)
-            block.set_visible()
-            self.hidden_blocks.remove(block)
-        
-        while change:
-            change = False
-            publishable = []
-            for block in self.hidden_blocks:
-                if not block.parent.hidden and block.owner.dec_publish(block, self.calc_payoff):
-                    publishable.append(block)
-                    change = True
-
+        updated_players = {player}
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.calc_payoff)
+                inform = player.inform(self.calc_payoff)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
             for block in publishable:
                 self.struct.add_block(block)
                 block.set_visible()
                 self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
 
     def step(self):
         rand_player = randint(1, self.tot_h)
@@ -123,19 +134,34 @@ class Simulation:
         self.check_publishable(owner)
 
     def uncover_on_end(self):
-        change = True
-        while change:
-            change = False
-            publishable = []
-            for block in self.hidden_blocks:
-                if not block.parent.hidden and block.owner.dec_publish(block, self.calc_payoff, True):
-                    publishable.append(block)
-                    change = True
-
+        updated_players = set(self.players)
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.calc_payoff, True)
+                inform = player.inform(self.calc_payoff, True)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
             for block in publishable:
                 self.struct.add_block(block)
                 block.set_visible()
                 self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
 
     def simulate(self):
         for _ in tqdm(range(self.step_nr)):
