@@ -86,23 +86,29 @@ class Simulation:
 
     def check_publishable(self, player):
         change = False
-        for block in player.hidden_blocks:
+        publishable = []
+        for block in filter(lambda x: x.owner == player, self.hidden_blocks):
             if not block.parent.hidden and player.dec_publish(block, self.calc_payoff):
-                self.struct.add_block(block)
-                block.set_visible()
-                self.hidden_blocks.remove(block)
-                player.delete_hidden_block(block)
+                publishable.append(block)
                 change = True
+
+        for block in publishable:
+            self.struct.add_block(block)
+            block.set_visible()
+            self.hidden_blocks.remove(block)
         
         while change:
             change = False
+            publishable = []
             for block in self.hidden_blocks:
                 if not block.parent.hidden and block.owner.dec_publish(block, self.calc_payoff):
-                    self.struct.add_block(block)
-                    block.set_visible()
-                    self.hidden_blocks.remove(block)
-                    block.owner.delete_hidden_block(block)
+                    publishable.append(block)
                     change = True
+
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
 
     def step(self):
         rand_player = randint(1, self.tot_h)
@@ -116,9 +122,26 @@ class Simulation:
         self.add_hidden_block(owner, parent)
         self.check_publishable(owner)
 
+    def uncover_on_end(self):
+        change = True
+        while change:
+            change = False
+            publishable = []
+            for block in self.hidden_blocks:
+                if not block.parent.hidden and block.owner.dec_publish(block, self.calc_payoff, True):
+                    publishable.append(block)
+                    change = True
+
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
+
     def simulate(self):
         for _ in tqdm(range(self.step_nr)):
             self.step()
+
+        self.uncover_on_end()
 
         while len(self.struct.deep_blocks) > 1:
             self.struct.depth -= 1
