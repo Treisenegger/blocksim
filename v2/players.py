@@ -126,3 +126,40 @@ class SelfPlayer:
 
     def inform(self, payoff, end=False):
         return dict()
+
+class AFPlayer:
+    def __init__(self, name):
+        self.name = name
+        self.hidden_blocks = []
+        self.known_blocks = []
+        self.last_block = None
+        self.struct = None
+
+    def add_hidden_block(self, block):
+        self.hidden_blocks.append(block)
+
+    def delete_hidden_block(self, block):
+        self.hidden_blocks.remove(block)
+    
+    def add_known_block(self, block):
+        self.known_blocks.append(block)
+
+    def strat(self, payoff):
+        if self.last_block:
+            return self.last_block
+        else:
+            block = self.struct.deep_blocks.pop()
+            self.struct.deep_blocks.add(block)
+            return block
+
+    def publish(self, payoff, end=False):
+        if self.hidden_blocks:
+            self.last_block = self.hidden_blocks[-1]
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = []
+            return set(prev_blocks)
+        else:
+            return set()
+
+    def inform(self, payoff, end=False):
+        return dict()
