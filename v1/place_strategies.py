@@ -1,5 +1,29 @@
 def default_strat(self, payoff):
-    if len(self.hidden_blocks) > 0:
+    next_blocks = self.struct.deep_blocks.copy()
+
+    if len(next_blocks) > 1:
+        while len(next_blocks) > 1:
+            old_blocks = next_blocks
+            next_blocks = set()
+            for block in old_blocks:
+                next_blocks.add(block.parent)
+
+        common_block = next_blocks.pop()
+        block_payoff = {block: payoff(block, common_block, self.struct.base)
+                        for block in self.struct.deep_blocks}
+        for block in block_payoff:
+            if self not in block_payoff[block]:
+                block_payoff[block][self] = {"block_number": 0, "payoff": 0}
+        max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self]["payoff"])
+        max_payoff_blocks = set(filter(lambda x: block_payoff[x][self]["payoff"] == block_payoff[max_payoff][self]["payoff"], self.struct.deep_blocks))
+        sel_block = max_payoff_blocks.pop()
+    else:
+        sel_block = next_blocks.pop()
+
+    return sel_block
+
+def selfish_strat(self, payoff):
+    if self.hidden_blocks:
         return self.hidden_blocks[-1]
     
     next_blocks = self.struct.deep_blocks.copy()
@@ -22,5 +46,7 @@ def default_strat(self, payoff):
         sel_block = max_payoff_blocks.pop()
     else:
         sel_block = next_blocks.pop()
+    
+    self.additional_info['just_forked'] = True
 
     return sel_block

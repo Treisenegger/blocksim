@@ -191,12 +191,12 @@ class Simulation:
         tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x.payoff, self.players))
 
         print("==========")
-        for i, player in enumerate(self.players):
-            print("Player: {}".format(i + 1))
+        for player in self.players:
+            print("Player: {}".format(player.name))
             print("Hash Power: {} ({}%)".format(player.h, player.h * 100 / self.tot_h))
             print("Block Number: {} ({}%)".format(player.block_number, player.block_number * 100 / tot_blocks if tot_blocks else 0))
             print("Payoff: {} ({}%)".format(player.payoff, player.payoff * 100 / tot_payoff if tot_payoff else 0))
             print("==========")
 
     def print_struct(self):
-        print(format_tree(self.struct.base, lambda x: x.owner.name if not x.owner is None else 'None', lambda x: x.children))
+        print(format_tree(self.struct.base, lambda x: "{}-{}".format(x.owner.name, x.tstamp) if not x.owner is None else 'None', lambda x: x.children))
