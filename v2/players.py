@@ -3,7 +3,6 @@ class DefPlayer:
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
-        self.additional_info = dict()
         self.struct = None
 
     def add_hidden_block(self, block):
@@ -53,7 +52,8 @@ class SelfPlayer:
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
-        self.additional_info = dict()
+        self.just_forked = False
+        self.first_block = None
         self.struct = None
 
     def add_hidden_block(self, block):
@@ -90,7 +90,7 @@ class SelfPlayer:
         else:
             sel_block = next_blocks.pop()
         
-        self.additional_info['just_forked'] = True
+        self.just_forked = True
 
         return sel_block
 
@@ -100,13 +100,13 @@ class SelfPlayer:
             self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
             return set(filter(lambda x: not x.parent.hidden, prev_blocks))
 
-        if 'just_forked' in self.additional_info and self.additional_info['just_forked']:
-            self.additional_info['just_forked'] = False
-            self.additional_info['first_block'] = self.hidden_blocks[-1]
+        if self.just_forked:
+            self.just_forked = False
+            self.first_block = self.hidden_blocks[-1]
             return set()
-        elif 'first_block' in self.additional_info and self.hidden_blocks:
-            if self.hidden_blocks == [self.additional_info['first_block']]:
-                if self.hidden_blocks[-1].depth == self.struct.depth:
+        elif self.hidden_blocks:
+            if self.hidden_blocks == [self.first_block]:
+                if self.first_block.depth == self.struct.depth:
                     prev_blocks = self.hidden_blocks
                     self.hidden_blocks = []
                     return set(prev_blocks)
