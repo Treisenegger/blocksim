@@ -85,6 +85,7 @@ class SelfPlayer:
         self.known_blocks = []
         self.just_forked = False
         self.first_block = None
+        self.last_published = None
         self.struct = None
 
     def add_hidden_block(self, block):
@@ -102,26 +103,13 @@ class SelfPlayer:
         
         next_blocks = self.struct.deep_blocks.copy()
 
-        if len(next_blocks) > 1:
-            while len(next_blocks) > 1:
-                old_blocks = next_blocks
-                next_blocks = set()
-                for block in old_blocks:
-                    next_blocks.add(block.parent)
-
-            common_block = next_blocks.pop()
-            block_payoff = {block: payoff(block, common_block, self.struct.base)
-                            for block in self.struct.deep_blocks}
-            for block in block_payoff:
-                if self.name not in block_payoff[block]:
-                    block_payoff[block][self.name] = {"block_number": 0, "payoff": 0}
-            max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name]["payoff"])
-            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name]["payoff"] == block_payoff[max_payoff][self.name]["payoff"], self.struct.deep_blocks))
-            sel_block = max_payoff_blocks.pop()
+        if self.last_published is not None and self.last_published.depth == self.struct.depth:
+            if len(self.struct.deep_blocks) == 1:
+                self.just_forked = True
+            sel_block = self.last_published
         else:
             sel_block = next_blocks.pop()
-        
-        self.just_forked = True
+            self.just_forked = True
 
         return sel_block
 
@@ -140,6 +128,7 @@ class SelfPlayer:
                 if self.first_block.depth == self.struct.depth:
                     prev_blocks = self.hidden_blocks
                     self.hidden_blocks = []
+                    self.last_published = self.first_block
                     return set(prev_blocks)
                 else:
                     return set()
@@ -147,11 +136,15 @@ class SelfPlayer:
                 if self.hidden_blocks[-1].depth <= self.struct.depth + 1:
                     prev_blocks = self.hidden_blocks
                     self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-                    return set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                    publish = set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                    self.last_published = max(publish, key=lambda x: x.depth)
+                    return publish
                 else:
                     prev_blocks = self.hidden_blocks
                     self.hidden_blocks = list(filter(lambda x: x.parent.hidden or x.depth > self.struct.depth, self.hidden_blocks))
-                    return set(filter(lambda x: not x.parent.hidden and x.depth <= self.struct.depth, prev_blocks))
+                    publish = set(filter(lambda x: not x.parent.hidden and x.depth <= self.struct.depth, prev_blocks))
+                    self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
+                    return publish
         else:
             return set()
 
