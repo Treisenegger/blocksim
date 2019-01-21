@@ -8,12 +8,12 @@ if __name__ == "__main__":
 
     players.append(DefPlayer('1'))
     # players.append(DefPlayer('2'))
-    # players.append(SelfPlayer('2'))
-    players.append(AFPlayer('2'))
+    players.append(SelfPlayer('2'))
+    # players.append(AFPlayer('2'))
 
-    h = {'1': 1, '2': 2}
+    h = {'1': 1, '2': 1}
     
-    sim = Simulation(players, h, 30, payoff=alpha_beta_payoff(1, 1))
+    sim = Simulation(players, h, 10000, payoff=alpha_beta_payoff(1, 1))
     sim.simulate()
     sim.print_results()
-    sim.print_struct()
+    # sim.print_struct()

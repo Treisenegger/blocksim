@@ -58,7 +58,6 @@ class Simulation:
         self.calc_payoff = payoff
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        print(self.tot_h)
         self.struct = Structure()
         self.hidden_blocks = []
         for player in self.players:
@@ -159,8 +158,6 @@ class Simulation:
         last_block = self.struct.deep_blocks.pop()
         self.struct.deep_blocks.add(last_block)
         payoff_dict = self.calc_payoff(last_block, self.struct.base, self.struct.base)
-
-        print(payoff_dict)
 
         for player in self.players:
             player.block_number = payoff_dict[player.name]["block_number"] if player.name in payoff_dict else 0
