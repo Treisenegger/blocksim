@@ -1,15 +1,20 @@
-from simulation import Player, Simulation
-from strategies import default_strat
-from payoff import constant_payoff
+from simulation import Simulation
+from players import DefPlayer, SelfPlayer
+from payoff import alpha_beta_payoff
 
 
 if __name__ == "__main__":
     players = []
 
-    for i in range(1, 4):
-        players.append(Player(str(i), i*1000, default_strat))
+    players.append(DefPlayer('1'))
+    players.append(DefPlayer('2'))
+    players.append(SelfPlayer('3'))
+
+    h = {'1': 1, '2': 1, '3': 2}
+
+    # players = players[::-1]
     
-    sim = Simulation(players, constant_payoff, 10000000)
+    sim = Simulation(players, h, 3000, payoff=alpha_beta_payoff(1, 1))
     sim.simulate()
     sim.print_results()
     # sim.print_struct()
