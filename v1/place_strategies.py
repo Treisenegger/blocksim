@@ -1,9 +1,7 @@
 def default_strat(self, payoff):
     if len(self.hidden_blocks) > 0:
         return self.hidden_blocks[-1]
-
-    sel_block = None
-
+    
     next_blocks = self.struct.deep_blocks.copy()
 
     if len(next_blocks) > 1:
@@ -22,8 +20,7 @@ def default_strat(self, payoff):
         max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self]["payoff"])
         max_payoff_blocks = set(filter(lambda x: block_payoff[x][self]["payoff"] == block_payoff[max_payoff][self]["payoff"], self.struct.deep_blocks))
         sel_block = max_payoff_blocks.pop()
-    
-    if sel_block is None:
+    else:
         sel_block = next_blocks.pop()
 
     return sel_block
