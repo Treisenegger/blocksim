@@ -1,3 +1,34 @@
+from random import sample
+
+
+class DefPlayerRandom:
+    def __init__(self, name):
+        self.name = name
+        self.hidden_blocks = []
+        self.known_blocks = []
+        self.struct = None
+
+    def add_hidden_block(self, block):
+        self.hidden_blocks.append(block)
+
+    def delete_hidden_block(self, block):
+        self.hidden_blocks.remove(block)
+    
+    def add_known_block(self, block):
+        self.known_blocks.append(block)
+
+    def strat(self, payoff):
+        return sample(self.struct.deep_blocks, 1)[0]
+
+    def publish(self, payoff, end=False):
+        prev_blocks = self.hidden_blocks
+        self.hidden_blocks = []
+        return set(prev_blocks)
+
+    def inform(self, payoff, end=False):
+        return dict()
+
+
 class DefPlayer:
     def __init__(self, name):
         self.name = name
