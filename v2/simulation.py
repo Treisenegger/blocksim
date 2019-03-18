@@ -31,12 +31,13 @@ class Block:
 
 
 class Structure:
-    def __init__(self):
+    def __init__(self, payoff):
         self.base = Block(None, None, 0)
         self.base.set_visible()
         self.deep_blocks = {self.base}
         self.depth = 0
         self.last_tstamp = 0
+        self.payoff = payoff
 
     def add_block(self, block):
         block.set_tstamp(self.last_tstamp + 1)
@@ -55,10 +56,9 @@ class Simulation:
     def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
         self.players = players
         self.h = h
-        self.calc_payoff = payoff
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure()
+        self.struct = Structure(payoff)
         self.hidden_blocks = []
         for player in self.players:
             player.struct = self.struct
@@ -76,8 +76,8 @@ class Simulation:
             publishable = set()
             informable = dict()
             for player in prev_players:
-                publish = player.publish(self.calc_payoff)
-                inform = player.inform(self.calc_payoff)
+                publish = player.publish(self.struct)
+                inform = player.inform(self.struct)
                 if publish:
                     updated_players = set(self.players)
                     publishable |= publish
@@ -106,7 +106,7 @@ class Simulation:
                 break
             else:
                 rand_player -= self.h[player.name]
-        parent = owner.strat(self.calc_payoff)
+        parent = owner.strat(self.struct)
         self.add_hidden_block(owner, parent)
         self.check_publishable(owner)
 
@@ -118,8 +118,8 @@ class Simulation:
             publishable = set()
             informable = dict()
             for player in prev_players:
-                publish = player.publish(self.calc_payoff, True)
-                inform = player.inform(self.calc_payoff, True)
+                publish = player.publish(self.struct, True)
+                inform = player.inform(self.struct, True)
                 if publish:
                     updated_players = set(self.players)
                     publishable |= publish
@@ -157,7 +157,7 @@ class Simulation:
         
         last_block = self.struct.deep_blocks.pop()
         self.struct.deep_blocks.add(last_block)
-        payoff_dict = self.calc_payoff(last_block, self.struct.base, self.struct.base)
+        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
 
         for player in self.players:
             player.block_number = payoff_dict[player.name]["block_number"] if player.name in payoff_dict else 0
