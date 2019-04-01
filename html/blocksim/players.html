@@ -28,29 +28,121 @@ from .simulation import Block
 
 
 class DefPlayerRandom:
+
+    &#34;&#34;&#34;Generate player that uses the default strategy but, when there is a tie in
+    max depth, the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose a random block from the
+        deepest blocks in the structure.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         return sample(struct.deep_blocks, 1)[0]
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()
 
 
@@ -524,33 +616,126 @@ See help(type(self)) for accurate signature.</p></section>
 <span>class <span class="ident">DefPlayerRandom</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Generate player that uses the default strategy but, when there is a tie in
+max depth, the algorithm chooses randomly between the deepest blocks to mine.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class DefPlayerRandom:
+
+    &#34;&#34;&#34;Generate player that uses the default strategy but, when there is a tie in
+    max depth, the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose a random block from the
+        deepest blocks in the structure.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         return sample(struct.deep_blocks, 1)[0]
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -559,11 +744,21 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Initialize self.
-See help(type(self)) for accurate signature.</p></section>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the player</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the player&#34;&#34;&#34;
+
     self.name = name
     self.hidden_blocks = []
     self.known_blocks = []</code></pre>
@@ -573,10 +768,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by current player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>new hidden block to be save</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by current player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        new hidden block to be save&#34;&#34;&#34;
+
     self.hidden_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -584,10 +793,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by another player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be saved</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by another player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be saved&#34;&#34;&#34;
+
     self.known_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -595,10 +818,26 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete reference to hidden block created by the current player after
+revealing it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be forgotten</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+    revealing it.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be forgotten&#34;&#34;&#34;
+
     self.hidden_blocks.remove(block)</code></pre>
 </details>
 </dd>
@@ -606,10 +845,43 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to communicate to other players. Don't communicate any
+block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>com_blocks</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary indicating which blocks to communicate to which players</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+    block.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    com_blocks : dict
+        dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
     return dict()</code></pre>
 </details>
 </dd>
@@ -617,10 +889,41 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to reveal. Reveal all hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
     prev_blocks = self.hidden_blocks
     self.hidden_blocks = []
     return set(prev_blocks)</code></pre>
@@ -630,10 +933,37 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose a block to mine on top of. Choose a random block from the
+deepest blocks in the structure.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Choose a random block from the
+    deepest blocks in the structure.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
     return sample(struct.deep_blocks, 1)[0]</code></pre>
 </details>
 </dd>

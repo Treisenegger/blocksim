@@ -4,48 +4,197 @@ from .simulation import Block
 
 
 class DefPlayerRandom:
+
+    """Generate player that uses the default strategy but, when there is a tie in
+    max depth, the algorithm chooses randomly between the deepest blocks to mine."""
+
     def __init__(self, name):
+
+        """Parameters
+        ----------
+        
+        name : string
+            identifier for the player"""
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        """Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save"""
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        """Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten"""
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        """Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved"""
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        """Choose a block to mine on top of. Choose a random block from the
+        deepest blocks in the structure.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of"""
+
         return sample(struct.deep_blocks, 1)[0]
 
     def publish(self, struct, end=False):
+
+        """Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed"""
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        """Choose blocks to communicate to other players. Don't communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players"""
+
         return dict()
 
 
 class DefPlayer:
+
+    """Generate player that uses the default strategy . When there is a tie in
+    max depth, the algorithm chooses the branch that gives the current player
+    the max amount of payoff."""
+
     def __init__(self, name):
+
+        """Parameters
+        ----------
+        
+        name : string
+            identifier for the player"""
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        """Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save"""
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        """Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten"""
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        """Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved"""
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        """Choose a block to mine on top of. Choose the deepest block in the
+        structure that belongs to the branch that maximizes the current player's
+        payoff.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of"""
+
         next_blocks = struct.deep_blocks.copy()
 
         if len(next_blocks) > 1:
@@ -70,11 +219,48 @@ class DefPlayer:
         return sel_block
 
     def publish(self, struct, end=False):
+
+        """Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed"""
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        """Choose blocks to communicate to other players. Don't communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players"""
+            
         return dict()
 
 
