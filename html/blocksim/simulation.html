@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.5.3" />
+<title>blocksim.simulation API documentation</title>
+<meta name="description" content="Classes consisting of the main logic behind the simulations." />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.name small{font-weight:normal}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title"><code>blocksim.simulation</code> module</h1>
+</header>
+<section id="section-intro">
+<p>Classes consisting of the main logic behind the simulations.</p>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;Classes consisting of the main logic behind the simulations.&#34;&#34;&#34;
+
+import numpy as np
+
+from types import MethodType
+from functools import reduce
+from random import randint
+
+from tqdm import tqdm
+
+from tree_format import format_tree
+
+from .payoff import constant_payoff, alpha_beta_payoff
+
+
+class Block:
+
+    &#34;&#34;&#34;Generate block of the data structure.&#34;&#34;&#34;
+
+    def __init__(self, parent, owner, tstamp=-1):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        parent : Block
+            parent block for the new block
+        owner : Player
+            player that created the block
+        tstamp : int
+            timestamp of moment in which the block was revealed&#34;&#34;&#34;
+        
+        self.parent = parent
+        self.owner = owner
+        self.depth = parent.depth + 1 if parent is not None else 0
+        self.tstamp = tstamp
+        self.children = []
+        self.hidden = True
+
+    def add_child(self, child):
+
+        &#34;&#34;&#34;Add child block to current block.
+        
+        Parameters
+        ----------
+        
+        child : Block
+            child block of current block&#34;&#34;&#34;
+
+        self.children.append(child)
+
+    def set_tstamp(self, tstamp):
+
+        &#34;&#34;&#34;Set timestamp of revelation for current block.
+        
+        Parameters
+        ----------
+        
+        tstamp : int
+            timestamp in of revelation for current block&#34;&#34;&#34;
+
+        self.tstamp = tstamp
+
+    def set_visible(self):
+
+        &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
+
+        self.hidden = False
+
+
+class Structure:
+
+    &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
+
+    def __init__(self, payoff):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        payoff : function
+            payoff function for simulation&#34;&#34;&#34;
+
+        self.base = Block(None, None, 0)
+        self.base.set_visible()
+        self.deep_blocks = {self.base}
+        self.depth = 0
+        self.last_tstamp = 0
+        self.payoff = payoff
+
+    def add_block(self, block):
+
+        &#34;&#34;&#34;Add a revealed block to the data structure.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            revealed block to add to the data structure&#34;&#34;&#34;
+
+        block.set_tstamp(self.last_tstamp + 1)
+        block.parent.add_child(block)
+
+        if block.depth == self.depth:
+            self.deep_blocks.add(block)
+        elif block.depth &gt; self.depth:
+            self.deep_blocks = {block}
+            self.depth = block.depth
+
+        self.last_tstamp += 1
+        
+
+class Simulation:
+
+    &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
+
+    def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        players : list
+            list of players to participate in the simulation
+        h : dict
+            dictionary of pairs {player name: hash power value}. The greater the
+            hash power value the likelier it is for the player to get assigned
+            the next new block
+        step_nr : int
+            number of blocks to generate before the simulation ends
+        payoff : function
+            payoff function for simulation blocks&#34;&#34;&#34;
+
+        self.players = players
+        self.h = h
+        self.step_nr = step_nr
+        self.tot_h = reduce(lambda x, y: x + y, h.values())
+        self.struct = Structure(payoff)
+        self.hidden_blocks = []
+        self.results = dict()
+
+    def add_hidden_block(self, owner, parent):
+
+        &#34;&#34;&#34;Generate a hidden block and inform the owner of its creation.
+        
+        Parameters
+        ----------
+        
+        owner : Player
+            owner of the new block that is being created
+        parent : Block
+            parent block for the new block&#34;&#34;&#34;
+
+        new_block = Block(parent, owner)
+        self.hidden_blocks.append(new_block)
+        owner.add_hidden_block(new_block)
+
+    def check_publishable(self, player):
+
+        &#34;&#34;&#34;Spreads information based on state changes of the data structure and
+        communication between players. Firstly, the owner of the new block can choose
+        to reveal any of their hidden blocks or to communicate any of them to other
+        players. After this, any player which has gotten new information through
+        the reveal of a new block or through a message received can choose to
+        reveal a block or communicate blocks to other players. This iterative
+        process continues until there is a cycle in which no players have gotten
+        new information.
+        
+        Parameters
+        ----------
+        
+        player : Player
+            owner of the block generated in the current cycle&#34;&#34;&#34;
+
+        updated_players = {player}
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.struct)
+                inform = player.inform(self.struct)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
+
+    def step(self):
+
+        &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
+        chooses one player randomly, with the probability of selecting a
+        player being determined by their hash power value divided by
+        the total hash power value of all players. After this a block
+        is created with said player as its owner. Lastly, we call the
+        ``check_publishable`` method, which spreads information between
+        the different players.&#34;&#34;&#34;
+
+        rand_player = randint(1, self.tot_h)
+        for player in self.players:
+            if rand_player &lt;= self.h[player.name]:
+                owner = player
+                break
+            else:
+                rand_player -= self.h[player.name]
+        parent = owner.strat(self.struct)
+        self.add_hidden_block(owner, parent)
+        self.check_publishable(owner)
+
+    def uncover_on_end(self):
+
+        &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
+        this method is called at the end of the process, to make sure that
+        every player can disclose their hidden blocks at the end of the
+        simulation, for them to count towards their payoff.&#34;&#34;&#34;
+
+        updated_players = set(self.players)
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.struct, True)
+                inform = player.inform(self.struct, True)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
+
+    def simulate(self):
+
+        &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
+        on the instatiation of the simulation object and calculates the payoff
+        that each player receives and saves this data.&#34;&#34;&#34;
+
+        for _ in tqdm(range(self.step_nr)):
+            self.step()
+
+        self.uncover_on_end()
+
+        while len(self.struct.deep_blocks) &gt; 1:
+            self.struct.depth -= 1
+            new_blocks = set()
+
+            for block in self.struct.deep_blocks:
+                new_blocks.add(block.parent)
+
+            self.struct.deep_blocks = new_blocks
+        
+        last_block = self.struct.deep_blocks.pop()
+        self.struct.deep_blocks.add(last_block)
+        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+
+        for player in self.players:
+            self.results[player.name] = dict()
+            self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
+            self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
+
+    def print_results(self):
+
+        &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
+        the block number and the payoff for each of the players.&#34;&#34;&#34;
+
+        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
+        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+
+        print(&#34;==========&#34;)
+        for player in self.players:
+            print(&#34;Player: {}&#34;.format(player.name))
+            print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+            print(&#34;==========&#34;)
+
+    def print_struct(self):
+
+        &#34;&#34;&#34;Displays a representation of the data structure of the conducted
+        simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
+
+        print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="blocksim.simulation.Block"><code class="flex name class">
+<span>class <span class="ident">Block</span></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate block of the data structure.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Block:
+
+    &#34;&#34;&#34;Generate block of the data structure.&#34;&#34;&#34;
+
+    def __init__(self, parent, owner, tstamp=-1):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        parent : Block
+            parent block for the new block
+        owner : Player
+            player that created the block
+        tstamp : int
+            timestamp of moment in which the block was revealed&#34;&#34;&#34;
+        
+        self.parent = parent
+        self.owner = owner
+        self.depth = parent.depth + 1 if parent is not None else 0
+        self.tstamp = tstamp
+        self.children = []
+        self.hidden = True
+
+    def add_child(self, child):
+
+        &#34;&#34;&#34;Add child block to current block.
+        
+        Parameters
+        ----------
+        
+        child : Block
+            child block of current block&#34;&#34;&#34;
+
+        self.children.append(child)
+
+    def set_tstamp(self, tstamp):
+
+        &#34;&#34;&#34;Set timestamp of revelation for current block.
+        
+        Parameters
+        ----------
+        
+        tstamp : int
+            timestamp in of revelation for current block&#34;&#34;&#34;
+
+        self.tstamp = tstamp
+
+    def set_visible(self):
+
+        &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
+
+        self.hidden = False</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.simulation.Block.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, parent, owner, tstamp=-1)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>parent block for the new block</dd>
+<dt><strong><code>owner</code></strong> :&ensp;<code>Player</code></dt>
+<dd>player that created the block</dd>
+<dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
+<dd>timestamp of moment in which the block was revealed</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, parent, owner, tstamp=-1):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    parent : Block
+        parent block for the new block
+    owner : Player
+        player that created the block
+    tstamp : int
+        timestamp of moment in which the block was revealed&#34;&#34;&#34;
+    
+    self.parent = parent
+    self.owner = owner
+    self.depth = parent.depth + 1 if parent is not None else 0
+    self.tstamp = tstamp
+    self.children = []
+    self.hidden = True</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Block.add_child"><code class="name flex">
+<span>def <span class="ident">add_child</span></span>(<span>self, child)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Add child block to current block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>child</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>child block of current block</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_child(self, child):
+
+    &#34;&#34;&#34;Add child block to current block.
+    
+    Parameters
+    ----------
+    
+    child : Block
+        child block of current block&#34;&#34;&#34;
+
+    self.children.append(child)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Block.set_tstamp"><code class="name flex">
+<span>def <span class="ident">set_tstamp</span></span>(<span>self, tstamp)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Set timestamp of revelation for current block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
+<dd>timestamp in of revelation for current block</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_tstamp(self, tstamp):
+
+    &#34;&#34;&#34;Set timestamp of revelation for current block.
+    
+    Parameters
+    ----------
+    
+    tstamp : int
+        timestamp in of revelation for current block&#34;&#34;&#34;
+
+    self.tstamp = tstamp</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Block.set_visible"><code class="name flex">
+<span>def <span class="ident">set_visible</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Reveal current block.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_visible(self):
+
+    &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
+
+    self.hidden = False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="blocksim.simulation.Simulation"><code class="flex name class">
+<span>class <span class="ident">Simulation</span></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate a simulation object to run simulations using certain parameters.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Simulation:
+
+    &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
+
+    def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        players : list
+            list of players to participate in the simulation
+        h : dict
+            dictionary of pairs {player name: hash power value}. The greater the
+            hash power value the likelier it is for the player to get assigned
+            the next new block
+        step_nr : int
+            number of blocks to generate before the simulation ends
+        payoff : function
+            payoff function for simulation blocks&#34;&#34;&#34;
+
+        self.players = players
+        self.h = h
+        self.step_nr = step_nr
+        self.tot_h = reduce(lambda x, y: x + y, h.values())
+        self.struct = Structure(payoff)
+        self.hidden_blocks = []
+        self.results = dict()
+
+    def add_hidden_block(self, owner, parent):
+
+        &#34;&#34;&#34;Generate a hidden block and inform the owner of its creation.
+        
+        Parameters
+        ----------
+        
+        owner : Player
+            owner of the new block that is being created
+        parent : Block
+            parent block for the new block&#34;&#34;&#34;
+
+        new_block = Block(parent, owner)
+        self.hidden_blocks.append(new_block)
+        owner.add_hidden_block(new_block)
+
+    def check_publishable(self, player):
+
+        &#34;&#34;&#34;Spreads information based on state changes of the data structure and
+        communication between players. Firstly, the owner of the new block can choose
+        to reveal any of their hidden blocks or to communicate any of them to other
+        players. After this, any player which has gotten new information through
+        the reveal of a new block or through a message received can choose to
+        reveal a block or communicate blocks to other players. This iterative
+        process continues until there is a cycle in which no players have gotten
+        new information.
+        
+        Parameters
+        ----------
+        
+        player : Player
+            owner of the block generated in the current cycle&#34;&#34;&#34;
+
+        updated_players = {player}
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.struct)
+                inform = player.inform(self.struct)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
+
+    def step(self):
+
+        &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
+        chooses one player randomly, with the probability of selecting a
+        player being determined by their hash power value divided by
+        the total hash power value of all players. After this a block
+        is created with said player as its owner. Lastly, we call the
+        ``check_publishable`` method, which spreads information between
+        the different players.&#34;&#34;&#34;
+
+        rand_player = randint(1, self.tot_h)
+        for player in self.players:
+            if rand_player &lt;= self.h[player.name]:
+                owner = player
+                break
+            else:
+                rand_player -= self.h[player.name]
+        parent = owner.strat(self.struct)
+        self.add_hidden_block(owner, parent)
+        self.check_publishable(owner)
+
+    def uncover_on_end(self):
+
+        &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
+        this method is called at the end of the process, to make sure that
+        every player can disclose their hidden blocks at the end of the
+        simulation, for them to count towards their payoff.&#34;&#34;&#34;
+
+        updated_players = set(self.players)
+        while updated_players:
+            prev_players = updated_players
+            updated_players = set()
+            publishable = set()
+            informable = dict()
+            for player in prev_players:
+                publish = player.publish(self.struct, True)
+                inform = player.inform(self.struct, True)
+                if publish:
+                    updated_players = set(self.players)
+                    publishable |= publish
+                if inform:
+                    for i_player in inform:
+                        updated_players.add(i_player)
+                        if i_player not in informable:
+                            informable[i_player] = set()
+                        informable[i_player] |= inform[i_player]
+            
+            for block in publishable:
+                self.struct.add_block(block)
+                block.set_visible()
+                self.hidden_blocks.remove(block)
+            
+            for player_name in informable:
+                for block in informable[player]:
+                    player = next((x for x in self.players if x.name == player_name), None)
+                    player.add_known_block(block)
+
+    def simulate(self):
+
+        &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
+        on the instatiation of the simulation object and calculates the payoff
+        that each player receives and saves this data.&#34;&#34;&#34;
+
+        for _ in tqdm(range(self.step_nr)):
+            self.step()
+
+        self.uncover_on_end()
+
+        while len(self.struct.deep_blocks) &gt; 1:
+            self.struct.depth -= 1
+            new_blocks = set()
+
+            for block in self.struct.deep_blocks:
+                new_blocks.add(block.parent)
+
+            self.struct.deep_blocks = new_blocks
+        
+        last_block = self.struct.deep_blocks.pop()
+        self.struct.deep_blocks.add(last_block)
+        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+
+        for player in self.players:
+            self.results[player.name] = dict()
+            self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
+            self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
+
+    def print_results(self):
+
+        &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
+        the block number and the payoff for each of the players.&#34;&#34;&#34;
+
+        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
+        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+
+        print(&#34;==========&#34;)
+        for player in self.players:
+            print(&#34;Player: {}&#34;.format(player.name))
+            print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+            print(&#34;==========&#34;)
+
+    def print_struct(self):
+
+        &#34;&#34;&#34;Displays a representation of the data structure of the conducted
+        simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
+
+        print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.simulation.Simulation.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, payoff=&lt;function alpha_beta_payoff.&lt;locals&gt;.ab_payoff at 0x7f739fe9d510&gt;)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>players</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of players to participate in the simulation</dd>
+<dt><strong><code>h</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary of pairs {player name: hash power value}. The greater the
+hash power value the likelier it is for the player to get assigned
+the next new block</dd>
+<dt><strong><code>step_nr</code></strong> :&ensp;<code>int</code></dt>
+<dd>number of blocks to generate before the simulation ends</dd>
+<dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
+<dd>payoff function for simulation blocks</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    players : list
+        list of players to participate in the simulation
+    h : dict
+        dictionary of pairs {player name: hash power value}. The greater the
+        hash power value the likelier it is for the player to get assigned
+        the next new block
+    step_nr : int
+        number of blocks to generate before the simulation ends
+    payoff : function
+        payoff function for simulation blocks&#34;&#34;&#34;
+
+    self.players = players
+    self.h = h
+    self.step_nr = step_nr
+    self.tot_h = reduce(lambda x, y: x + y, h.values())
+    self.struct = Structure(payoff)
+    self.hidden_blocks = []
+    self.results = dict()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.add_hidden_block"><code class="name flex">
+<span>def <span class="ident">add_hidden_block</span></span>(<span>self, owner, parent)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate a hidden block and inform the owner of its creation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>owner</code></strong> :&ensp;<code>Player</code></dt>
+<dd>owner of the new block that is being created</dd>
+<dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>parent block for the new block</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_hidden_block(self, owner, parent):
+
+    &#34;&#34;&#34;Generate a hidden block and inform the owner of its creation.
+    
+    Parameters
+    ----------
+    
+    owner : Player
+        owner of the new block that is being created
+    parent : Block
+        parent block for the new block&#34;&#34;&#34;
+
+    new_block = Block(parent, owner)
+    self.hidden_blocks.append(new_block)
+    owner.add_hidden_block(new_block)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.check_publishable"><code class="name flex">
+<span>def <span class="ident">check_publishable</span></span>(<span>self, player)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Spreads information based on state changes of the data structure and
+communication between players. Firstly, the owner of the new block can choose
+to reveal any of their hidden blocks or to communicate any of them to other
+players. After this, any player which has gotten new information through
+the reveal of a new block or through a message received can choose to
+reveal a block or communicate blocks to other players. This iterative
+process continues until there is a cycle in which no players have gotten
+new information.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>player</code></strong> :&ensp;<code>Player</code></dt>
+<dd>owner of the block generated in the current cycle</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def check_publishable(self, player):
+
+    &#34;&#34;&#34;Spreads information based on state changes of the data structure and
+    communication between players. Firstly, the owner of the new block can choose
+    to reveal any of their hidden blocks or to communicate any of them to other
+    players. After this, any player which has gotten new information through
+    the reveal of a new block or through a message received can choose to
+    reveal a block or communicate blocks to other players. This iterative
+    process continues until there is a cycle in which no players have gotten
+    new information.
+    
+    Parameters
+    ----------
+    
+    player : Player
+        owner of the block generated in the current cycle&#34;&#34;&#34;
+
+    updated_players = {player}
+    while updated_players:
+        prev_players = updated_players
+        updated_players = set()
+        publishable = set()
+        informable = dict()
+        for player in prev_players:
+            publish = player.publish(self.struct)
+            inform = player.inform(self.struct)
+            if publish:
+                updated_players = set(self.players)
+                publishable |= publish
+            if inform:
+                for i_player in inform:
+                    updated_players.add(i_player)
+                    if i_player not in informable:
+                        informable[i_player] = set()
+                    informable[i_player] |= inform[i_player]
+        
+        for block in publishable:
+            self.struct.add_block(block)
+            block.set_visible()
+            self.hidden_blocks.remove(block)
+        
+        for player_name in informable:
+            for block in informable[player]:
+                player = next((x for x in self.players if x.name == player_name), None)
+                player.add_known_block(block)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.print_results"><code class="name flex">
+<span>def <span class="ident">print_results</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Prints the results of the simulation, displaying the hash power value,
+the block number and the payoff for each of the players.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def print_results(self):
+
+    &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
+    the block number and the payoff for each of the players.&#34;&#34;&#34;
+
+    tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
+    tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+
+    print(&#34;==========&#34;)
+    for player in self.players:
+        print(&#34;Player: {}&#34;.format(player.name))
+        print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+        print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+        print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+        print(&#34;==========&#34;)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.print_struct"><code class="name flex">
+<span>def <span class="ident">print_struct</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Displays a representation of the data structure of the conducted
+simulation in the terminal using the library <code>format_tree</code>.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def print_struct(self):
+
+    &#34;&#34;&#34;Displays a representation of the data structure of the conducted
+    simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
+
+    print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.simulate"><code class="name flex">
+<span>def <span class="ident">simulate</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Conducts the simulation itself. Runs the number of steps specified
+on the instatiation of the simulation object and calculates the payoff
+that each player receives and saves this data.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def simulate(self):
+
+    &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
+    on the instatiation of the simulation object and calculates the payoff
+    that each player receives and saves this data.&#34;&#34;&#34;
+
+    for _ in tqdm(range(self.step_nr)):
+        self.step()
+
+    self.uncover_on_end()
+
+    while len(self.struct.deep_blocks) &gt; 1:
+        self.struct.depth -= 1
+        new_blocks = set()
+
+        for block in self.struct.deep_blocks:
+            new_blocks.add(block.parent)
+
+        self.struct.deep_blocks = new_blocks
+    
+    last_block = self.struct.deep_blocks.pop()
+    self.struct.deep_blocks.add(last_block)
+    payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+
+    for player in self.players:
+        self.results[player.name] = dict()
+        self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
+        self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.step"><code class="name flex">
+<span>def <span class="ident">step</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Simulates one step of the experiment. Firstly, the algorithm
+chooses one player randomly, with the probability of selecting a
+player being determined by their hash power value divided by
+the total hash power value of all players. After this a block
+is created with said player as its owner. Lastly, we call the
+<code>check_publishable</code> method, which spreads information between
+the different players.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def step(self):
+
+    &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
+    chooses one player randomly, with the probability of selecting a
+    player being determined by their hash power value divided by
+    the total hash power value of all players. After this a block
+    is created with said player as its owner. Lastly, we call the
+    ``check_publishable`` method, which spreads information between
+    the different players.&#34;&#34;&#34;
+
+    rand_player = randint(1, self.tot_h)
+    for player in self.players:
+        if rand_player &lt;= self.h[player.name]:
+            owner = player
+            break
+        else:
+            rand_player -= self.h[player.name]
+    parent = owner.strat(self.struct)
+    self.add_hidden_block(owner, parent)
+    self.check_publishable(owner)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Simulation.uncover_on_end"><code class="name flex">
+<span>def <span class="ident">uncover_on_end</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Considering that the simulation has a finite number on steps,
+this method is called at the end of the process, to make sure that
+every player can disclose their hidden blocks at the end of the
+simulation, for them to count towards their payoff.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def uncover_on_end(self):
+
+    &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
+    this method is called at the end of the process, to make sure that
+    every player can disclose their hidden blocks at the end of the
+    simulation, for them to count towards their payoff.&#34;&#34;&#34;
+
+    updated_players = set(self.players)
+    while updated_players:
+        prev_players = updated_players
+        updated_players = set()
+        publishable = set()
+        informable = dict()
+        for player in prev_players:
+            publish = player.publish(self.struct, True)
+            inform = player.inform(self.struct, True)
+            if publish:
+                updated_players = set(self.players)
+                publishable |= publish
+            if inform:
+                for i_player in inform:
+                    updated_players.add(i_player)
+                    if i_player not in informable:
+                        informable[i_player] = set()
+                    informable[i_player] |= inform[i_player]
+        
+        for block in publishable:
+            self.struct.add_block(block)
+            block.set_visible()
+            self.hidden_blocks.remove(block)
+        
+        for player_name in informable:
+            for block in informable[player]:
+                player = next((x for x in self.players if x.name == player_name), None)
+                player.add_known_block(block)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="blocksim.simulation.Structure"><code class="flex name class">
+<span>class <span class="ident">Structure</span></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate data structure for conducting simulation.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Structure:
+
+    &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
+
+    def __init__(self, payoff):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        payoff : function
+            payoff function for simulation&#34;&#34;&#34;
+
+        self.base = Block(None, None, 0)
+        self.base.set_visible()
+        self.deep_blocks = {self.base}
+        self.depth = 0
+        self.last_tstamp = 0
+        self.payoff = payoff
+
+    def add_block(self, block):
+
+        &#34;&#34;&#34;Add a revealed block to the data structure.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            revealed block to add to the data structure&#34;&#34;&#34;
+
+        block.set_tstamp(self.last_tstamp + 1)
+        block.parent.add_child(block)
+
+        if block.depth == self.depth:
+            self.deep_blocks.add(block)
+        elif block.depth &gt; self.depth:
+            self.deep_blocks = {block}
+            self.depth = block.depth
+
+        self.last_tstamp += 1</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.simulation.Structure.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, payoff)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
+<dd>payoff function for simulation</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, payoff):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    payoff : function
+        payoff function for simulation&#34;&#34;&#34;
+
+    self.base = Block(None, None, 0)
+    self.base.set_visible()
+    self.deep_blocks = {self.base}
+    self.depth = 0
+    self.last_tstamp = 0
+    self.payoff = payoff</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Structure.add_block"><code class="name flex">
+<span>def <span class="ident">add_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Add a revealed block to the data structure.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>revealed block to add to the data structure</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_block(self, block):
+
+    &#34;&#34;&#34;Add a revealed block to the data structure.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        revealed block to add to the data structure&#34;&#34;&#34;
+
+    block.set_tstamp(self.last_tstamp + 1)
+    block.parent.add_child(block)
+
+    if block.depth == self.depth:
+        self.deep_blocks.add(block)
+    elif block.depth &gt; self.depth:
+        self.deep_blocks = {block}
+        self.depth = block.depth
+
+    self.last_tstamp += 1</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="blocksim" href="index.html">blocksim</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="blocksim.simulation.Block" href="#blocksim.simulation.Block">Block</a></code></h4>
+<ul class="">
+<li><code><a title="blocksim.simulation.Block.__init__" href="#blocksim.simulation.Block.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.simulation.Block.add_child" href="#blocksim.simulation.Block.add_child">add_child</a></code></li>
+<li><code><a title="blocksim.simulation.Block.set_tstamp" href="#blocksim.simulation.Block.set_tstamp">set_tstamp</a></code></li>
+<li><code><a title="blocksim.simulation.Block.set_visible" href="#blocksim.simulation.Block.set_visible">set_visible</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.simulation.Simulation" href="#blocksim.simulation.Simulation">Simulation</a></code></h4>
+<ul class="two-column">
+<li><code><a title="blocksim.simulation.Simulation.__init__" href="#blocksim.simulation.Simulation.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.add_hidden_block" href="#blocksim.simulation.Simulation.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.check_publishable" href="#blocksim.simulation.Simulation.check_publishable">check_publishable</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.print_results" href="#blocksim.simulation.Simulation.print_results">print_results</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.print_struct" href="#blocksim.simulation.Simulation.print_struct">print_struct</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.simulate" href="#blocksim.simulation.Simulation.simulate">simulate</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.step" href="#blocksim.simulation.Simulation.step">step</a></code></li>
+<li><code><a title="blocksim.simulation.Simulation.uncover_on_end" href="#blocksim.simulation.Simulation.uncover_on_end">uncover_on_end</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.simulation.Structure" href="#blocksim.simulation.Structure">Structure</a></code></h4>
+<ul class="">
+<li><code><a title="blocksim.simulation.Structure.__init__" href="#blocksim.simulation.Structure.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.simulation.Structure.add_block" href="#blocksim.simulation.Structure.add_block">add_block</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.5.3</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

@@ -5,9 +5,7 @@ if __name__ == "__main__":
     players = []
 
     players.append(DefPlayerRandom('1'))
-    # players.append(DefPlayer('2'))
     players.append(DefPlayerRandom('2'))
-    # players.append(AFPlayer('2'))
     players.append(SelfPlayer('3'))
 
     h = {'1': 1, '2': 1, '3': 1}
