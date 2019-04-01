@@ -12,6 +12,7 @@ from payoff import constant_payoff, alpha_beta_payoff
 
 
 class Block:
+    '''Object representing one block of the data structure. Each block has a parent block, an owner and a timestamp indicating when it was revealed.'''
     def __init__(self, parent, owner, tstamp=-1):
         self.parent = parent
         self.owner = owner
