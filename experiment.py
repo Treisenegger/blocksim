@@ -1,6 +1,4 @@
-from simulation import Simulation
-from players import DefPlayerRandom, DefPlayer, SelfPlayer, AFPlayer
-from payoff import alpha_beta_payoff
+from blocksim import DefPlayerRandom, DefPlayer, SelfPlayer, Simulation, alpha_beta_payoff
 
 
 if __name__ == "__main__":

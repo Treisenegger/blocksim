@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from tree_format import format_tree
 
-from payoff import constant_payoff, alpha_beta_payoff
+from .payoff import constant_payoff, alpha_beta_payoff
 
 
 class Block:

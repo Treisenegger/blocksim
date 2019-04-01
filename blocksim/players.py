@@ -1,6 +1,6 @@
 from random import sample
 
-from simulation import Block
+from .simulation import Block
 
 
 class DefPlayerRandom:
