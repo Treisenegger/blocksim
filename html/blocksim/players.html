@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.5.3" />
 <title>blocksim.players API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Standard player strategies for conducting the experiments. Each player is generated
+with a name that serves as its identificator. Also, each player …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,9 +21,26 @@
 <h1 class="title"><code>blocksim.players</code> module</h1>
 </header>
 <section id="section-intro">
+<p>Standard player strategies for conducting the experiments. Each player is generated
+with a name that serves as its identificator. Also, each player has to have 6 methods
+called <code>add_hidden_block</code>, which saves a new hidden block created by the player,
+<code>delete_hidden_block</code>, which deletes the reference to a hidden block created by the
+player after revealing it, <code>add_known_block</code>, which saves a hidden block created by
+another player, <code>strat</code>, which chooses a block to mine on top of, <code>publish</code>,
+which chooses blocks to reveal, and <code>inform</code>, which chooses blocks to communicate
+to other players.</p>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from random import sample
+<pre><code class="python">&#34;&#34;&#34;Standard player strategies for conducting the experiments. Each player is generated
+with a name that serves as its identificator. Also, each player has to have 6 methods
+called ``add_hidden_block``, which saves a new hidden block created by the player,
+``delete_hidden_block``, which deletes the reference to a hidden block created by the
+player after revealing it, ``add_known_block``, which saves a hidden block created by
+another player, ``strat``, which chooses a block to mine on top of, ``publish``,
+which chooses blocks to reveal, and ``inform``, which chooses blocks to communicate
+to other players.&#34;&#34;&#34;
+
+from random import sample
 
 from .simulation import Block
 
@@ -147,21 +165,78 @@ class DefPlayerRandom:
 
 
 class DefPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the default strategy. When there is a tie in
+    max depth, the algorithm chooses the branch that gives the current player
+    the max amount of payoff.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+        structure that belongs to the branch that maximizes the current player&#39;s
+        payoff.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         next_blocks = struct.deep_blocks.copy()
 
         if len(next_blocks) &gt; 1:
@@ -186,16 +261,68 @@ class DefPlayer:
         return sel_block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()
 
 
 class SelfPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the selfish strategy. Once the player discovers
+    a new block, they don&#39;t reveal it unless another branch catches up to its
+    depth decremented by one. For example, if the hidden branch that the player
+    has created has a depth of ``n`` and there is another branch of depth
+    ``n - 2``, the player discloses every block that has a depth of ``n - 1``
+    or less.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
@@ -204,15 +331,60 @@ class SelfPlayer:
         self.last_published = None
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+        default strategy would, unless the player has hidden blocks, in which
+        case they mine on top of the last hidden block they have placed.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         if self.hidden_blocks:
             return self.hidden_blocks[-1]
         
@@ -229,6 +401,26 @@ class SelfPlayer:
         return sel_block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+        SelfPlayer, one only reveals a block if another branch has caught
+        up with its depth decremented by one.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         if end:
             prev_blocks = self.hidden_blocks
             self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
@@ -264,25 +456,101 @@ class SelfPlayer:
             return set()
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()
 
 class AFPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the always fork strategy. At first the
+    player mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed in the structure.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
         self.last_block = None
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+        the player hasn&#39;t placed any blocks. Otherwise, chooses the last block
+        placed by the player.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         if self.last_block:
             return self.last_block
         else:
@@ -291,6 +559,24 @@ class AFPlayer:
             return block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         if self.hidden_blocks:
             self.last_block = self.hidden_blocks[-1]
             prev_blocks = self.hidden_blocks
@@ -300,6 +586,25 @@ class AFPlayer:
             return set()
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()</code></pre>
 </details>
 </section>
@@ -316,26 +621,85 @@ class AFPlayer:
 <span>class <span class="ident">AFPlayer</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Generate player that uses the always fork strategy. At first the
+player mines on top of the genesis block. After that, they only mine on
+top of the last block they have placed in the structure.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class AFPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the always fork strategy. At first the
+    player mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed in the structure.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
         self.last_block = None
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+        the player hasn&#39;t placed any blocks. Otherwise, chooses the last block
+        placed by the player.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         if self.last_block:
             return self.last_block
         else:
@@ -344,6 +708,24 @@ class AFPlayer:
             return block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         if self.hidden_blocks:
             self.last_block = self.hidden_blocks[-1]
             prev_blocks = self.hidden_blocks
@@ -353,6 +735,25 @@ class AFPlayer:
             return set()
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -361,11 +762,21 @@ class AFPlayer:
 <span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Initialize self.
-See help(type(self)) for accurate signature.</p></section>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the player</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the player&#34;&#34;&#34;
+
     self.name = name
     self.hidden_blocks = []
     self.known_blocks = []
@@ -376,10 +787,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by current player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>new hidden block to be save</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by current player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        new hidden block to be save&#34;&#34;&#34;
+
     self.hidden_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -387,10 +812,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by another player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be saved</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by another player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be saved&#34;&#34;&#34;
+
     self.known_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -398,10 +837,26 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete reference to hidden block created by the current player after
+revealing it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be forgotten</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+    revealing it.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be forgotten&#34;&#34;&#34;
+
     self.hidden_blocks.remove(block)</code></pre>
 </details>
 </dd>
@@ -409,10 +864,43 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to communicate to other players. Don't communicate any
+block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>com_blocks</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary indicating which blocks to communicate to which players</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+    block.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    com_blocks : dict
+        dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
     return dict()</code></pre>
 </details>
 </dd>
@@ -420,10 +908,41 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to reveal. Reveal all hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
     if self.hidden_blocks:
         self.last_block = self.hidden_blocks[-1]
         prev_blocks = self.hidden_blocks
@@ -437,10 +956,39 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose a block to mine on top of. Chooses the genesis block if
+the player hasn't placed any blocks. Otherwise, chooses the last block
+placed by the player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+    the player hasn&#39;t placed any blocks. Otherwise, chooses the last block
+    placed by the player.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
     if self.last_block:
         return self.last_block
     else:
@@ -455,25 +1003,84 @@ See help(type(self)) for accurate signature.</p></section>
 <span>class <span class="ident">DefPlayer</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Generate player that uses the default strategy. When there is a tie in
+max depth, the algorithm chooses the branch that gives the current player
+the max amount of payoff.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class DefPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the default strategy. When there is a tie in
+    max depth, the algorithm chooses the branch that gives the current player
+    the max amount of payoff.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+        structure that belongs to the branch that maximizes the current player&#39;s
+        payoff.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         next_blocks = struct.deep_blocks.copy()
 
         if len(next_blocks) &gt; 1:
@@ -498,11 +1105,48 @@ See help(type(self)) for accurate signature.</p></section>
         return sel_block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = []
         return set(prev_blocks)
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -511,11 +1155,21 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Initialize self.
-See help(type(self)) for accurate signature.</p></section>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the player</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the player&#34;&#34;&#34;
+
     self.name = name
     self.hidden_blocks = []
     self.known_blocks = []</code></pre>
@@ -525,10 +1179,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by current player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>new hidden block to be save</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by current player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        new hidden block to be save&#34;&#34;&#34;
+
     self.hidden_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -536,10 +1204,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by another player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be saved</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by another player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be saved&#34;&#34;&#34;
+
     self.known_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -547,10 +1229,26 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete reference to hidden block created by the current player after
+revealing it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be forgotten</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+    revealing it.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be forgotten&#34;&#34;&#34;
+
     self.hidden_blocks.remove(block)</code></pre>
 </details>
 </dd>
@@ -558,10 +1256,43 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to communicate to other players. Don't communicate any
+block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>com_blocks</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary indicating which blocks to communicate to which players</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+    block.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    com_blocks : dict
+        dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
     return dict()</code></pre>
 </details>
 </dd>
@@ -569,10 +1300,41 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to reveal. Reveal all hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
     prev_blocks = self.hidden_blocks
     self.hidden_blocks = []
     return set(prev_blocks)</code></pre>
@@ -582,10 +1344,39 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose a block to mine on top of. Choose the deepest block in the
+structure that belongs to the branch that maximizes the current player's
+payoff.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+    structure that belongs to the branch that maximizes the current player&#39;s
+    payoff.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
     next_blocks = struct.deep_blocks.copy()
 
     if len(next_blocks) &gt; 1:
@@ -973,11 +1764,31 @@ deepest blocks in the structure.</p>
 <span>class <span class="ident">SelfPlayer</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Generate player that uses the selfish strategy. Once the player discovers
+a new block, they don't reveal it unless another branch catches up to its
+depth decremented by one. For example, if the hidden branch that the player
+has created has a depth of <code>n</code> and there is another branch of depth
+<code>n - 2</code>, the player discloses every block that has a depth of <code>n - 1</code>
+or less.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class SelfPlayer:
+
+    &#34;&#34;&#34;Generate player that uses the selfish strategy. Once the player discovers
+    a new block, they don&#39;t reveal it unless another branch catches up to its
+    depth decremented by one. For example, if the hidden branch that the player
+    has created has a depth of ``n`` and there is another branch of depth
+    ``n - 2``, the player discloses every block that has a depth of ``n - 1``
+    or less.&#34;&#34;&#34;
+
     def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the player&#34;&#34;&#34;
+
         self.name = name
         self.hidden_blocks = []
         self.known_blocks = []
@@ -986,15 +1797,60 @@ deepest blocks in the structure.</p>
         self.last_published = None
 
     def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by current player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new hidden block to be save&#34;&#34;&#34;
+
         self.hidden_blocks.append(block)
 
     def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+        revealing it.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be forgotten&#34;&#34;&#34;
+
         self.hidden_blocks.remove(block)
     
     def add_known_block(self, block):
+
+        &#34;&#34;&#34;Save a hidden block created by another player.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            block to be saved&#34;&#34;&#34;
+
         self.known_blocks.append(block)
 
     def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+        default strategy would, unless the player has hidden blocks, in which
+        case they mine on top of the last hidden block they have placed.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
         if self.hidden_blocks:
             return self.hidden_blocks[-1]
         
@@ -1011,6 +1867,26 @@ deepest blocks in the structure.</p>
         return sel_block
 
     def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+        SelfPlayer, one only reveals a block if another branch has caught
+        up with its depth decremented by one.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
         if end:
             prev_blocks = self.hidden_blocks
             self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
@@ -1046,6 +1922,25 @@ deepest blocks in the structure.</p>
             return set()
 
     def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+        block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        com_blocks : dict
+            dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
         return dict()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -1054,11 +1949,21 @@ deepest blocks in the structure.</p>
 <span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Initialize self.
-See help(type(self)) for accurate signature.</p></section>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the player</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the player&#34;&#34;&#34;
+
     self.name = name
     self.hidden_blocks = []
     self.known_blocks = []
@@ -1071,10 +1976,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by current player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>new hidden block to be save</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by current player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        new hidden block to be save&#34;&#34;&#34;
+
     self.hidden_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -1082,10 +2001,24 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Save a hidden block created by another player.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be saved</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;Save a hidden block created by another player.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be saved&#34;&#34;&#34;
+
     self.known_blocks.append(block)</code></pre>
 </details>
 </dd>
@@ -1093,10 +2026,26 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete reference to hidden block created by the current player after
+revealing it.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block to be forgotten</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;Delete reference to hidden block created by the current player after
+    revealing it.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        block to be forgotten&#34;&#34;&#34;
+
     self.hidden_blocks.remove(block)</code></pre>
 </details>
 </dd>
@@ -1104,10 +2053,43 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to communicate to other players. Don't communicate any
+block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>com_blocks</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary indicating which blocks to communicate to which players</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to communicate to other players. Don&#39;t communicate any
+    block.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    com_blocks : dict
+        dictionary indicating which blocks to communicate to which players&#34;&#34;&#34;
+
     return dict()</code></pre>
 </details>
 </dd>
@@ -1115,10 +2097,45 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose blocks to reveal. As explained in the documentation for
+SelfPlayer, one only reveals a block if another branch has caught
+up with its depth decremented by one.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+    SelfPlayer, one only reveals a block if another branch has caught
+    up with its depth decremented by one.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
     if end:
         prev_blocks = self.hidden_blocks
         self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
@@ -1158,10 +2175,39 @@ See help(type(self)) for accurate signature.</p></section>
 <span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Choose a block to mine on top of. Chooses the same way that the
+default strategy would, unless the player has hidden blocks, in which
+case they mine on top of the last hidden block they have placed.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+    default strategy would, unless the player has hidden blocks, in which
+    case they mine on top of the last hidden block they have placed.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
     if self.hidden_blocks:
         return self.hidden_blocks[-1]
     
