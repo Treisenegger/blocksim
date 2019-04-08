@@ -40,7 +40,7 @@ def constant_payoff(start_block, end_block, base):
 
     return payoff_dict
 
-def alpha_beta_payoff(alpha, beta):
+def alpha_beta_step_payoff(alpha, beta, step):
 
     """Payoff function factory. This function creates a payoff function using the
     given parameters.
@@ -94,7 +94,7 @@ def alpha_beta_payoff(alpha, beta):
             if block.owner.name not in payoff_dict:
                 payoff_dict[block.owner.name] = {"block_number": 0, "payoff": 0}
             payoff_dict[block.owner.name]["block_number"] += 1
-            payoff_dict[block.owner.name]["payoff"] += (alpha**block.tstamp)*(beta**block.depth)
+            payoff_dict[block.owner.name]["payoff"] += (alpha**(block.tstamp // step))*(beta**block.depth)
             block = block.parent
 
         return payoff_dict

@@ -7,5 +7,5 @@ the payoff and players submodules consist of standard payoff functions and minin
 strategies, respectively."""
 
 from .players import DefPlayerRandom, DefPlayer, SelfPlayer
-from .payoff import constant_payoff, alpha_beta_payoff
+from .payoff import constant_payoff, alpha_beta_step_payoff
 from .simulation import Simulation, Block

@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from tree_format import format_tree
 
-from .payoff import constant_payoff, alpha_beta_payoff
+from .payoff import constant_payoff, alpha_beta_step_payoff
 
 
 class Block:
@@ -112,7 +112,7 @@ class Simulation:
 
     """Generate a simulation object to run simulations using certain parameters."""
 
-    def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+    def __init__(self, players, h, step_nr, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         """Parameters
         ----------
