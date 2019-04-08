@@ -53,6 +53,9 @@ def alpha_beta_step_payoff(alpha, beta, step):
     beta : float
         number that accounts for the diminishment of the payoff for each block in
         the Bitcoin structure after a certain amount of blocks have been created
+    step : int
+        amount of blocks in the blockchain after which the payoff for each block
+        diminishes
         
     Results
     -------
@@ -94,7 +97,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
             if block.owner.name not in payoff_dict:
                 payoff_dict[block.owner.name] = {"block_number": 0, "payoff": 0}
             payoff_dict[block.owner.name]["block_number"] += 1
-            payoff_dict[block.owner.name]["payoff"] += (alpha**(block.tstamp // step))*(beta**block.depth)
+            payoff_dict[block.owner.name]["payoff"] += (alpha**block.tstamp)*(beta**(block.depth // step))
             block = block.parent
 
         return payoff_dict
