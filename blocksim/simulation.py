@@ -35,6 +35,7 @@ class Block:
         self.tstamp = tstamp
         self.children = []
         self.hidden = True
+        self.paid = False
 
     def add_child(self, child):
 
@@ -71,7 +72,7 @@ class Structure:
 
     """Generate data structure for conducting simulation."""
 
-    def __init__(self, payoff):
+    def __init__(self, payoff, players, safe_dist):
 
         """Parameters
         ----------
@@ -80,11 +81,14 @@ class Structure:
             payoff function for simulation"""
 
         self.base = Block(None, None, 0)
+        self.base.paid = True
         self.base.set_visible()
         self.deep_blocks = {self.base}
         self.depth = 0
         self.last_tstamp = 0
         self.payoff = payoff
+        self.safe_dist = safe_dist
+        self.partial_payoff = {player.name: {'block_number': 0, 'payoff': 0} for player in players}
 
     def add_block(self, block):
 
@@ -104,6 +108,22 @@ class Structure:
         elif block.depth > self.depth:
             self.deep_blocks = {block}
             self.depth = block.depth
+            if block.depth > self.safe_dist:
+                first_paid = block
+                for _ in range(self.safe_dist):
+                    first_paid = first_paid.parent
+
+                last_paid = first_paid
+                last_paid.paid = True
+                while last_paid.parent is not None and not last_paid.parent.paid:
+                    last_paid = last_paid.parent
+                    last_paid.paid = True
+                
+                new_payoffs = self.payoff(first_paid, last_paid, self.base)
+
+                for player_name in new_payoffs:
+                    self.partial_payoff[player_name]['block_number'] += new_payoffs[player_name]['block_number']
+                    self.partial_payoff[player_name]['payoff'] += new_payoffs[player_name]['payoff']
 
         self.last_tstamp += 1
         
@@ -112,7 +132,7 @@ class Simulation:
 
     """Generate a simulation object to run simulations using certain parameters."""
 
-    def __init__(self, players, h, step_nr, payoff=alpha_beta_step_payoff(1, 1, 1)):
+    def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         """Parameters
         ----------
@@ -132,9 +152,8 @@ class Simulation:
         self.h = h
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure(payoff)
+        self.struct = Structure(payoff, players, safe_dist)
         self.hidden_blocks = []
-        self.results = dict()
 
     def add_hidden_block(self, owner, parent):
 
@@ -266,38 +285,38 @@ class Simulation:
 
         self.uncover_on_end()
 
-        while len(self.struct.deep_blocks) > 1:
-            self.struct.depth -= 1
-            new_blocks = set()
+        # while len(self.struct.deep_blocks) > 1:
+        #     self.struct.depth -= 1
+        #     new_blocks = set()
 
-            for block in self.struct.deep_blocks:
-                new_blocks.add(block.parent)
+        #     for block in self.struct.deep_blocks:
+        #         new_blocks.add(block.parent)
 
-            self.struct.deep_blocks = new_blocks
+        #     self.struct.deep_blocks = new_blocks
         
-        last_block = self.struct.deep_blocks.pop()
-        self.struct.deep_blocks.add(last_block)
-        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+        # last_block = self.struct.deep_blocks.pop()
+        # self.struct.deep_blocks.add(last_block)
+        # payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
 
-        for player in self.players:
-            self.results[player.name] = dict()
-            self.results[player.name]["block_number"] = payoff_dict[player.name]["block_number"] if player.name in payoff_dict else 0
-            self.results[player.name]["payoff"] = payoff_dict[player.name]["payoff"] if player.name in payoff_dict else 0
+        # for player in self.players:
+        #     self.results[player.name] = dict()
+        #     self.results[player.name]["block_number"] = payoff_dict[player.name]["block_number"] if player.name in payoff_dict else 0
+        #     self.results[player.name]["payoff"] = payoff_dict[player.name]["payoff"] if player.name in payoff_dict else 0
 
     def print_results(self):
 
         """Prints the results of the simulation, displaying the hash power value,
         the block number and the payoff for each of the players."""
 
-        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x["block_number"], self.results.values()))
-        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x["payoff"], self.results.values()))
+        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x["block_number"], self.struct.partial_payoff.values()))
+        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x["payoff"], self.struct.partial_payoff.values()))
 
         print("==========")
         for player in self.players:
             print("Player: {}".format(player.name))
             print("Hash Power: {} ({}%)".format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print("Block Number: {} ({}%)".format(self.results[player.name]["block_number"], self.results[player.name]["block_number"] * 100 / tot_blocks if tot_blocks else 0))
-            print("Payoff: {} ({}%)".format(self.results[player.name]["payoff"], self.results[player.name]["payoff"] * 100 / tot_payoff if tot_payoff else 0))
+            print("Block Number: {} ({}%)".format(self.struct.partial_payoff[player.name]["block_number"], self.struct.partial_payoff[player.name]["block_number"] * 100 / tot_blocks if tot_blocks else 0))
+            print("Payoff: {} ({}%)".format(self.struct.partial_payoff[player.name]["payoff"], self.struct.partial_payoff[player.name]["payoff"] * 100 / tot_payoff if tot_payoff else 0))
             print("==========")
 
     def print_struct(self):

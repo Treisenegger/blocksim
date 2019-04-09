@@ -31,7 +31,7 @@ def constant_payoff(start_block, end_block, base):
     
     block = start_block
 
-    while (block != end_block) and (block != base):
+    while (block != end_block.parent) and (block != base):
         if block.owner.name not in payoff_dict:
             payoff_dict[block.owner.name] = {"block_number": 0, "payoff": 0}
         payoff_dict[block.owner.name]["block_number"] += 1
@@ -93,7 +93,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
         
         block = start_block
 
-        while (block != end_block) and (block != base):
+        while (block != end_block.parent) and (block != base):
             if block.owner.name not in payoff_dict:
                 payoff_dict[block.owner.name] = {"block_number": 0, "payoff": 0}
             payoff_dict[block.owner.name]["block_number"] += 1
