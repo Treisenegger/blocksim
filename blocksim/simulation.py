@@ -78,7 +78,12 @@ class Structure:
         ----------
         
         payoff : function
-            payoff function for simulation"""
+            payoff function for simulation
+        players : list
+            list of players participating to keep track of their payoffs
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out"""
 
         self.base = Block(None, None, 0)
         self.base.paid = True
@@ -92,7 +97,7 @@ class Structure:
 
     def add_block(self, block):
 
-        """Add a revealed block to the data structure.
+        """Add a revealed block to the data structure. Also update partial payoffs when appropriate.
         
         Parameters
         ----------
@@ -145,6 +150,9 @@ class Simulation:
             the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks"""
 
