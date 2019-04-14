@@ -6,6 +6,6 @@ The simulation submodule consists of the main logic behind the simulations, whil
 the payoff and players submodules consist of standard payoff functions and mining
 strategies, respectively."""
 
-from .players import DefPlayerRandom, DefPlayer, SelfPlayer
+from .players import *
 from .payoff import constant_payoff, alpha_beta_step_payoff
 from .simulation import Simulation, Block

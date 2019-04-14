@@ -14,8 +14,8 @@ from .simulation import Block
 
 class DefPlayerRandom:
 
-    """Generate player that uses the default strategy but, when there is a tie in
-    max depth, the algorithm chooses randomly between the deepest blocks to mine."""
+    """Generate player that uses the default strategy but when there is a tie in
+    max depth the algorithm chooses randomly between the deepest blocks to mine."""
 
     def __init__(self, name):
 
@@ -215,12 +215,15 @@ class DefPlayer:
 
             common_block = next_blocks.pop()
             block_payoff = {block: struct.payoff(block, common_block, struct.base)
-                            for block in struct.deep_blocks}
+                for block in struct.deep_blocks}
+
             for block in block_payoff:
                 if self.name not in block_payoff[block]:
                     block_payoff[block][self.name] = {"block_number": 0, "payoff": 0}
+
             max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name]["payoff"])
-            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name]["payoff"] == block_payoff[max_payoff][self.name]["payoff"], struct.deep_blocks))
+            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name]["payoff"] == \
+                block_payoff[max_payoff][self.name]["payoff"], struct.deep_blocks))
             sel_block = max_payoff_blocks.pop()
         else:
             sel_block = next_blocks.pop()
@@ -390,8 +393,8 @@ class SelfPlayer:
 
         if end:
             prev_blocks = self.hidden_blocks
-            self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-            return set(filter(lambda x: not x.parent.hidden, prev_blocks))
+            self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+            return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
 
         if self.just_forked:
             self.just_forked = False
@@ -409,14 +412,14 @@ class SelfPlayer:
             else:
                 if self.hidden_blocks[-1].depth <= struct.depth + 1:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
                     self.last_published = max(publish, key=lambda x: x.depth)
                     return publish
                 else:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden or x.depth > struct.depth, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden and x.depth <= struct.depth, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth > struct.depth, self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth <= struct.depth, prev_blocks))
                     self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
                     return publish
         else:

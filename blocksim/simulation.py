@@ -8,7 +8,7 @@ from random import randint
 
 from tqdm import tqdm
 
-from tree_format import format_tree
+# from tree_format import format_tree
 
 from .payoff import constant_payoff, alpha_beta_step_payoff
 
@@ -34,7 +34,7 @@ class Block:
         self.depth = parent.depth + 1 if parent is not None else 0
         self.tstamp = tstamp
         self.children = []
-        self.hidden = True
+        self.is_hidden = lambda: self not in self.parent.children
         self.paid = False
 
     def add_child(self, child):
@@ -61,11 +61,17 @@ class Block:
 
         self.tstamp = tstamp
 
-    def set_visible(self):
+    def set_paid(self):
 
-        """Reveal current block."""
+        """Mark block as paid."""
 
-        self.hidden = False
+        self.paid = True
+
+    def is_paid(self):
+
+        """Check whether block has been paid."""
+
+        return self.paid
 
 
 class Structure:
@@ -86,8 +92,7 @@ class Structure:
             blockchain for its payoff to be given out"""
 
         self.base = Block(None, None, 0)
-        self.base.paid = True
-        self.base.set_visible()
+        self.base.set_paid()
         self.deep_blocks = {self.base}
         self.depth = 0
         self.last_tstamp = 0
@@ -119,10 +124,10 @@ class Structure:
                     first_paid = first_paid.parent
 
                 last_paid = first_paid
-                last_paid.paid = True
-                while last_paid.parent is not None and not last_paid.parent.paid:
+                last_paid.set_paid()
+                while last_paid.parent is not None and not last_paid.parent.is_paid():
                     last_paid = last_paid.parent
-                    last_paid.paid = True
+                    last_paid.set_paid()
                 
                 new_payoffs = self.payoff(first_paid, last_paid, self.base)
 
@@ -217,7 +222,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -274,7 +278,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -322,14 +325,14 @@ class Simulation:
         print("==========")
         for player in self.players:
             print("Player: {}".format(player.name))
-            print("Hash Power: {} ({}%)".format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print("Block Number: {} ({}%)".format(self.struct.partial_payoff[player.name]["block_number"], self.struct.partial_payoff[player.name]["block_number"] * 100 / tot_blocks if tot_blocks else 0))
-            print("Payoff: {} ({}%)".format(self.struct.partial_payoff[player.name]["payoff"], self.struct.partial_payoff[player.name]["payoff"] * 100 / tot_payoff if tot_payoff else 0))
+            print("Hash Power: {} ({:.2f}%)".format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+            print("Block Number: {} ({:.2f}%)".format(self.struct.partial_payoff[player.name]["block_number"], self.struct.partial_payoff[player.name]["block_number"] * 100 / tot_blocks if tot_blocks else 0))
+            print("Payoff: {:.2f} ({:.2f}%)".format(self.struct.partial_payoff[player.name]["payoff"], self.struct.partial_payoff[player.name]["payoff"] * 100 / tot_payoff if tot_payoff else 0))
             print("==========")
 
-    def print_struct(self):
+    # def print_struct(self):
 
-        """Displays a representation of the data structure of the conducted
-        simulation in the terminal using the library ``format_tree``."""
+    #     """Displays a representation of the data structure of the conducted
+    #     simulation in the terminal using the library ``format_tree``."""
 
-        print(format_tree(self.struct.base, lambda x: "{}-{}".format(x.owner.name, x.tstamp) if not x.owner is None else 'None', lambda x: x.children))
+    #     print(format_tree(self.struct.base, lambda x: "{}-{}".format(x.owner.name, x.tstamp) if not x.owner is None else 'None', lambda x: x.children))
