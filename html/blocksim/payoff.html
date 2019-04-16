@@ -35,7 +35,7 @@ branch and the ``end_block`` is the shallowest.&#34;&#34;&#34;
 def constant_payoff(start_block, end_block, base):
 
     &#34;&#34;&#34;Payoff function that assigns a constant value for each block in the
-    branch that exists between ``start_block`` and ``end_block``, including
+    branch that exists between `start_block` and `end_block`, including
     both ends.
     
     Parameters
@@ -46,7 +46,7 @@ def constant_payoff(start_block, end_block, base):
     end_block : blocksim.simulation.Block
         shallowest block in the branch
     base : blocksim.simulation.Block
-        root of the structure. Used if ``start_block`` and ``end_block``
+        root of the structure. Used if `start_block` and `end_block`
         are not on the same branch as an ending condition for the calculation
         
     Results
@@ -96,7 +96,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
     def ab_payoff(start_block, end_block, base):
 
         &#34;&#34;&#34;Payoff function that assigns a value for each block in the
-        branch that exists between ``start_block`` and ``end_block``,
+        branch that exists between `start_block` and `end_block`,
         including both ends accounting for devaulation of money and
         diminishment of payoff in the Bitcoin structure over time.
         
@@ -108,7 +108,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
         end_block : blocksim.simulation.Block
             shallowest block in the branch
         base : blocksim.simulation.Block
-            root of the structure. Used if ``start_block`` and ``end_block``
+            root of the structure. Used if `start_block` and `end_block`
             are not on the same branch as an ending condition for the calculation
             
         Results
@@ -192,7 +192,7 @@ purposes</dd>
     def ab_payoff(start_block, end_block, base):
 
         &#34;&#34;&#34;Payoff function that assigns a value for each block in the
-        branch that exists between ``start_block`` and ``end_block``,
+        branch that exists between `start_block` and `end_block`,
         including both ends accounting for devaulation of money and
         diminishment of payoff in the Bitcoin structure over time.
         
@@ -204,7 +204,7 @@ purposes</dd>
         end_block : blocksim.simulation.Block
             shallowest block in the branch
         base : blocksim.simulation.Block
-            root of the structure. Used if ``start_block`` and ``end_block``
+            root of the structure. Used if `start_block` and `end_block`
             are not on the same branch as an ending condition for the calculation
             
         Results
@@ -238,11 +238,11 @@ branch that exists between <code>start_block</code> and <code>end_block</code>, 
 both ends.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>start_block</code></strong> :&ensp;<code>blocksim.simulation.Block</code></dt>
+<dt><strong><code>start_block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>deepest block in the branch</dd>
-<dt><strong><code>end_block</code></strong> :&ensp;<code>blocksim.simulation.Block</code></dt>
+<dt><strong><code>end_block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>shallowest block in the branch</dd>
-<dt><strong><code>base</code></strong> :&ensp;<code>blocksim.simulation.Block</code></dt>
+<dt><strong><code>base</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>root of the structure. Used if <code>start_block</code> and <code>end_block</code>
 are not on the same branch as an ending condition for the calculation</dd>
 </dl>
@@ -257,7 +257,7 @@ of blocks owned by each player in the branch</dd>
 <pre><code class="python">def constant_payoff(start_block, end_block, base):
 
     &#34;&#34;&#34;Payoff function that assigns a constant value for each block in the
-    branch that exists between ``start_block`` and ``end_block``, including
+    branch that exists between `start_block` and `end_block`, including
     both ends.
     
     Parameters
@@ -268,7 +268,7 @@ of blocks owned by each player in the branch</dd>
     end_block : blocksim.simulation.Block
         shallowest block in the branch
     base : blocksim.simulation.Block
-        root of the structure. Used if ``start_block`` and ``end_block``
+        root of the structure. Used if `start_block` and `end_block`
         are not on the same branch as an ending condition for the calculation
         
     Results

@@ -52,7 +52,7 @@ class Block:
         owner : blocksim.players.Player
             player that created the block
         tstamp : int
-            timestamp of moment in which the block was revealed&#34;&#34;&#34;
+            timestamp of moment in which the block was published&#34;&#34;&#34;
         
         self.parent = parent
         self.owner = owner
@@ -82,7 +82,7 @@ class Block:
         ----------
         
         tstamp : int
-            timestamp in of revelation for current block&#34;&#34;&#34;
+            timestamp of publication for current block&#34;&#34;&#34;
 
         self.tstamp = tstamp
 
@@ -175,14 +175,14 @@ class Simulation:
         players : list
             list of players to participate in the simulation
         h : dict
-            dictionary of pairs {player name: hash power value}. The greater the
-            hash power value the likelier it is for the player to get assigned
-            the next new block
+            dictionary of pairs {player name: hash power value}. The greater
+            the hash power value the likelier it is for the player to get
+            assigned the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
         safe_dist : int
-            number indicating how many blocks have to be ahead of certain block in the
-            blockchain for its payoff to be given out
+            number indicating how many blocks have to be ahead of a certain
+            block in the blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
@@ -393,7 +393,7 @@ class Simulation:
         owner : blocksim.players.Player
             player that created the block
         tstamp : int
-            timestamp of moment in which the block was revealed&#34;&#34;&#34;
+            timestamp of moment in which the block was published&#34;&#34;&#34;
         
         self.parent = parent
         self.owner = owner
@@ -423,7 +423,7 @@ class Simulation:
         ----------
         
         tstamp : int
-            timestamp in of revelation for current block&#34;&#34;&#34;
+            timestamp of publication for current block&#34;&#34;&#34;
 
         self.tstamp = tstamp
 
@@ -452,7 +452,7 @@ class Simulation:
 <dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
 <dd>player that created the block</dd>
 <dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
-<dd>timestamp of moment in which the block was revealed</dd>
+<dd>timestamp of moment in which the block was published</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
@@ -466,7 +466,7 @@ class Simulation:
     owner : blocksim.players.Player
         player that created the block
     tstamp : int
-        timestamp of moment in which the block was revealed&#34;&#34;&#34;
+        timestamp of moment in which the block was published&#34;&#34;&#34;
     
     self.parent = parent
     self.owner = owner
@@ -538,7 +538,7 @@ class Simulation:
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
-<dd>timestamp in of revelation for current block</dd>
+<dd>timestamp of publication for current block</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
@@ -550,7 +550,7 @@ class Simulation:
     ----------
     
     tstamp : int
-        timestamp in of revelation for current block&#34;&#34;&#34;
+        timestamp of publication for current block&#34;&#34;&#34;
 
     self.tstamp = tstamp</code></pre>
 </details>
@@ -576,14 +576,14 @@ class Simulation:
         players : list
             list of players to participate in the simulation
         h : dict
-            dictionary of pairs {player name: hash power value}. The greater the
-            hash power value the likelier it is for the player to get assigned
-            the next new block
+            dictionary of pairs {player name: hash power value}. The greater
+            the hash power value the likelier it is for the player to get
+            assigned the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
         safe_dist : int
-            number indicating how many blocks have to be ahead of certain block in the
-            blockchain for its payoff to be given out
+            number indicating how many blocks have to be ahead of a certain
+            block in the blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
@@ -759,7 +759,7 @@ class Simulation:
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Simulation.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7f7c94876158&gt;)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7f385dbb4158&gt;)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
@@ -767,14 +767,14 @@ class Simulation:
 <dt><strong><code>players</code></strong> :&ensp;<code>list</code></dt>
 <dd>list of players to participate in the simulation</dd>
 <dt><strong><code>h</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary of pairs {player name: hash power value}. The greater the
-hash power value the likelier it is for the player to get assigned
-the next new block</dd>
+<dd>dictionary of pairs {player name: hash power value}. The greater
+the hash power value the likelier it is for the player to get
+assigned the next new block</dd>
 <dt><strong><code>step_nr</code></strong> :&ensp;<code>int</code></dt>
 <dd>number of blocks to generate before the simulation ends</dd>
 <dt><strong><code>safe_dist</code></strong> :&ensp;<code>int</code></dt>
-<dd>number indicating how many blocks have to be ahead of certain block in the
-blockchain for its payoff to be given out</dd>
+<dd>number indicating how many blocks have to be ahead of a certain
+block in the blockchain for its payoff to be given out</dd>
 <dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
 <dd>payoff function for simulation blocks</dd>
 </dl></section>
@@ -788,14 +788,14 @@ blockchain for its payoff to be given out</dd>
     players : list
         list of players to participate in the simulation
     h : dict
-        dictionary of pairs {player name: hash power value}. The greater the
-        hash power value the likelier it is for the player to get assigned
-        the next new block
+        dictionary of pairs {player name: hash power value}. The greater
+        the hash power value the likelier it is for the player to get
+        assigned the next new block
     step_nr : int
         number of blocks to generate before the simulation ends
     safe_dist : int
-        number indicating how many blocks have to be ahead of certain block in the
-        blockchain for its payoff to be given out
+        number indicating how many blocks have to be ahead of a certain
+        block in the blockchain for its payoff to be given out
     payoff : function
         payoff function for simulation blocks&#34;&#34;&#34;
 

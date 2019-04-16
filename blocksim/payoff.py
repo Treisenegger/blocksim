@@ -6,7 +6,7 @@ branch and the ``end_block`` is the shallowest."""
 def constant_payoff(start_block, end_block, base):
 
     """Payoff function that assigns a constant value for each block in the
-    branch that exists between ``start_block`` and ``end_block``, including
+    branch that exists between `start_block` and `end_block`, including
     both ends.
     
     Parameters
@@ -17,7 +17,7 @@ def constant_payoff(start_block, end_block, base):
     end_block : blocksim.simulation.Block
         shallowest block in the branch
     base : blocksim.simulation.Block
-        root of the structure. Used if ``start_block`` and ``end_block``
+        root of the structure. Used if `start_block` and `end_block`
         are not on the same branch as an ending condition for the calculation
         
     Results
@@ -67,7 +67,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
     def ab_payoff(start_block, end_block, base):
 
         """Payoff function that assigns a value for each block in the
-        branch that exists between ``start_block`` and ``end_block``,
+        branch that exists between `start_block` and `end_block`,
         including both ends accounting for devaulation of money and
         diminishment of payoff in the Bitcoin structure over time.
         
@@ -79,7 +79,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
         end_block : blocksim.simulation.Block
             shallowest block in the branch
         base : blocksim.simulation.Block
-            root of the structure. Used if ``start_block`` and ``end_block``
+            root of the structure. Used if `start_block` and `end_block`
             are not on the same branch as an ending condition for the calculation
             
         Results
