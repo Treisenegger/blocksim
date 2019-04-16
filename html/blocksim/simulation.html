@@ -47,9 +47,9 @@ class Block:
         &#34;&#34;&#34;Parameters
         ----------
         
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block
-        owner : Player
+        owner : blocksim.players.Player
             player that created the block
         tstamp : int
             timestamp of moment in which the block was revealed&#34;&#34;&#34;
@@ -69,7 +69,7 @@ class Block:
         Parameters
         ----------
         
-        child : Block
+        child : blocksim.simulation.Block
             child block of current block&#34;&#34;&#34;
 
         self.children.append(child)
@@ -132,7 +132,7 @@ class Structure:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             revealed block to add to the data structure&#34;&#34;&#34;
 
         block.set_tstamp(self.last_tstamp + 1)
@@ -200,9 +200,9 @@ class Simulation:
         Parameters
         ----------
         
-        owner : Player
+        owner : blocksim.players.Player
             owner of the new block that is being created
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block&#34;&#34;&#34;
 
         new_block = Block(parent, owner)
@@ -223,7 +223,7 @@ class Simulation:
         Parameters
         ----------
         
-        player : Player
+        player : blocksim.players.Player
             owner of the block generated in the current cycle&#34;&#34;&#34;
 
         updated_players = {player}
@@ -261,8 +261,8 @@ class Simulation:
         player being determined by their hash power value divided by
         the total hash power value of all players. After this a block
         is created with said player as its owner. Lastly, we call the
-        ``check_publishable`` method, which spreads information between
-        the different players.&#34;&#34;&#34;
+        `blocksim.simulation.Simulation.check_publishable` method, which
+        spreads information between the different players.&#34;&#34;&#34;
 
         rand_player = randint(1, self.tot_h)
         for player in self.players:
@@ -388,9 +388,9 @@ class Simulation:
         &#34;&#34;&#34;Parameters
         ----------
         
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block
-        owner : Player
+        owner : blocksim.players.Player
             player that created the block
         tstamp : int
             timestamp of moment in which the block was revealed&#34;&#34;&#34;
@@ -410,7 +410,7 @@ class Simulation:
         Parameters
         ----------
         
-        child : Block
+        child : blocksim.simulation.Block
             child block of current block&#34;&#34;&#34;
 
         self.children.append(child)
@@ -449,7 +449,7 @@ class Simulation:
 <dl>
 <dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>parent block for the new block</dd>
-<dt><strong><code>owner</code></strong> :&ensp;<code>Player</code></dt>
+<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
 <dd>player that created the block</dd>
 <dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
 <dd>timestamp of moment in which the block was revealed</dd>
@@ -461,9 +461,9 @@ class Simulation:
     &#34;&#34;&#34;Parameters
     ----------
     
-    parent : Block
+    parent : blocksim.simulation.Block
         parent block for the new block
-    owner : Player
+    owner : blocksim.players.Player
         player that created the block
     tstamp : int
         timestamp of moment in which the block was revealed&#34;&#34;&#34;
@@ -496,7 +496,7 @@ class Simulation:
     Parameters
     ----------
     
-    child : Block
+    child : blocksim.simulation.Block
         child block of current block&#34;&#34;&#34;
 
     self.children.append(child)</code></pre>
@@ -601,9 +601,9 @@ class Simulation:
         Parameters
         ----------
         
-        owner : Player
+        owner : blocksim.players.Player
             owner of the new block that is being created
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block&#34;&#34;&#34;
 
         new_block = Block(parent, owner)
@@ -624,7 +624,7 @@ class Simulation:
         Parameters
         ----------
         
-        player : Player
+        player : blocksim.players.Player
             owner of the block generated in the current cycle&#34;&#34;&#34;
 
         updated_players = {player}
@@ -662,8 +662,8 @@ class Simulation:
         player being determined by their hash power value divided by
         the total hash power value of all players. After this a block
         is created with said player as its owner. Lastly, we call the
-        ``check_publishable`` method, which spreads information between
-        the different players.&#34;&#34;&#34;
+        `blocksim.simulation.Simulation.check_publishable` method, which
+        spreads information between the different players.&#34;&#34;&#34;
 
         rand_player = randint(1, self.tot_h)
         for player in self.players:
@@ -759,7 +759,7 @@ class Simulation:
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Simulation.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7fbb50a140d0&gt;)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7f7c94876158&gt;)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
@@ -814,7 +814,7 @@ blockchain for its payoff to be given out</dd>
 <section class="desc"><p>Generate a hidden block and inform the owner of its creation.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>owner</code></strong> :&ensp;<code>Player</code></dt>
+<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
 <dd>owner of the new block that is being created</dd>
 <dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>parent block for the new block</dd>
@@ -828,9 +828,9 @@ blockchain for its payoff to be given out</dd>
     Parameters
     ----------
     
-    owner : Player
+    owner : blocksim.players.Player
         owner of the new block that is being created
-    parent : Block
+    parent : blocksim.simulation.Block
         parent block for the new block&#34;&#34;&#34;
 
     new_block = Block(parent, owner)
@@ -852,7 +852,7 @@ process continues until there is a cycle in which no players have gotten
 new information.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>player</code></strong> :&ensp;<code>Player</code></dt>
+<dt><strong><code>player</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
 <dd>owner of the block generated in the current cycle</dd>
 </dl></section>
 <details class="source">
@@ -871,7 +871,7 @@ new information.</p>
     Parameters
     ----------
     
-    player : Player
+    player : blocksim.players.Player
         owner of the block generated in the current cycle&#34;&#34;&#34;
 
     updated_players = {player}
@@ -958,8 +958,8 @@ chooses one player randomly, with the probability of selecting a
 player being determined by their hash power value divided by
 the total hash power value of all players. After this a block
 is created with said player as its owner. Lastly, we call the
-<code>check_publishable</code> method, which spreads information between
-the different players.</p></section>
+<a title="blocksim.simulation.Simulation.check_publishable" href="#blocksim.simulation.Simulation.check_publishable"><code>Simulation.check_publishable()</code></a> method, which
+spreads information between the different players.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def step(self):
@@ -969,8 +969,8 @@ the different players.</p></section>
     player being determined by their hash power value divided by
     the total hash power value of all players. After this a block
     is created with said player as its owner. Lastly, we call the
-    ``check_publishable`` method, which spreads information between
-    the different players.&#34;&#34;&#34;
+    `blocksim.simulation.Simulation.check_publishable` method, which
+    spreads information between the different players.&#34;&#34;&#34;
 
     rand_player = randint(1, self.tot_h)
     for player in self.players:
@@ -1072,7 +1072,7 @@ simulation, for them to count towards their payoff.</p></section>
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             revealed block to add to the data structure&#34;&#34;&#34;
 
         block.set_tstamp(self.last_tstamp + 1)
@@ -1162,7 +1162,7 @@ blockchain for its payoff to be given out</dd>
     Parameters
     ----------
     
-    block : Block
+    block : blocksim.simulation.Block
         revealed block to add to the data structure&#34;&#34;&#34;
 
     block.set_tstamp(self.last_tstamp + 1)

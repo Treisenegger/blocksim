@@ -22,9 +22,9 @@ class Block:
         """Parameters
         ----------
         
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block
-        owner : Player
+        owner : blocksim.players.Player
             player that created the block
         tstamp : int
             timestamp of moment in which the block was revealed"""
@@ -44,7 +44,7 @@ class Block:
         Parameters
         ----------
         
-        child : Block
+        child : blocksim.simulation.Block
             child block of current block"""
 
         self.children.append(child)
@@ -107,7 +107,7 @@ class Structure:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             revealed block to add to the data structure"""
 
         block.set_tstamp(self.last_tstamp + 1)
@@ -175,9 +175,9 @@ class Simulation:
         Parameters
         ----------
         
-        owner : Player
+        owner : blocksim.players.Player
             owner of the new block that is being created
-        parent : Block
+        parent : blocksim.simulation.Block
             parent block for the new block"""
 
         new_block = Block(parent, owner)
@@ -198,7 +198,7 @@ class Simulation:
         Parameters
         ----------
         
-        player : Player
+        player : blocksim.players.Player
             owner of the block generated in the current cycle"""
 
         updated_players = {player}
@@ -236,8 +236,8 @@ class Simulation:
         player being determined by their hash power value divided by
         the total hash power value of all players. After this a block
         is created with said player as its owner. Lastly, we call the
-        ``check_publishable`` method, which spreads information between
-        the different players."""
+        `blocksim.simulation.Simulation.check_publishable` method, which
+        spreads information between the different players."""
 
         rand_player = randint(1, self.tot_h)
         for player in self.players:

@@ -40,7 +40,7 @@ class Player:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             new block that has just been created with the player as its owner.
             A reference to this block has to be saved for it to be published
             later on."""
@@ -55,7 +55,7 @@ class Player:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             published block to be removed from hidden blocks."""
 
         pass
@@ -69,7 +69,7 @@ class Player:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             hidden block that has been shown to the current player."""
 
         pass
@@ -83,13 +83,13 @@ class Player:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation containing the blockchain.
             
         Results
         -------
         
-        block : Block
+        block : blocksim.simulation.Block
             block on top of which the current player will place its next found block"""
 
         return Block(None, None)
@@ -103,7 +103,7 @@ class Player:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation containing the blockchain.
         end : bool
             flag indicating whether the method is being called on update of the state
@@ -127,7 +127,7 @@ class Player:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation containing the blockchain.
         end : bool
             flag indicating whether the method is being called on update of the
@@ -168,7 +168,7 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             new hidden block to be save"""
 
         self.hidden_blocks.append(block)
@@ -181,7 +181,7 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be forgotten"""
 
         self.hidden_blocks.remove(block)
@@ -193,7 +193,7 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be saved"""
 
         self.known_blocks.append(block)
@@ -206,13 +206,13 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
             
         Results
         -------
         
-        block : Block
+        block : blocksim.simulation.Block
             chosen block to mine on top of"""
 
         return sample(struct.deep_blocks, 1)[0]
@@ -224,7 +224,7 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -248,7 +248,7 @@ class DefPlayerRandom:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -288,7 +288,7 @@ class DefPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             new hidden block to be save"""
 
         self.hidden_blocks.append(block)
@@ -301,7 +301,7 @@ class DefPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be forgotten"""
 
         self.hidden_blocks.remove(block)
@@ -313,7 +313,7 @@ class DefPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be saved"""
 
         self.known_blocks.append(block)
@@ -327,13 +327,13 @@ class DefPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
             
         Results
         -------
         
-        block : Block
+        block : blocksim.simulation.Block
             chosen block to mine on top of"""
 
         next_blocks = struct.deep_blocks.copy()
@@ -369,7 +369,7 @@ class DefPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -393,7 +393,7 @@ class DefPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -439,7 +439,7 @@ class SelfPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             new hidden block to be save"""
 
         self.hidden_blocks.append(block)
@@ -452,7 +452,7 @@ class SelfPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be forgotten"""
 
         self.hidden_blocks.remove(block)
@@ -464,7 +464,7 @@ class SelfPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be saved"""
 
         self.known_blocks.append(block)
@@ -478,13 +478,13 @@ class SelfPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
             
         Results
         -------
         
-        block : Block
+        block : blocksim.simulation.Block
             chosen block to mine on top of"""
 
         if self.hidden_blocks:
@@ -511,7 +511,7 @@ class SelfPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -565,7 +565,7 @@ class SelfPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -605,7 +605,7 @@ class AFPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             new hidden block to be save"""
 
         self.hidden_blocks.append(block)
@@ -618,7 +618,7 @@ class AFPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be forgotten"""
 
         self.hidden_blocks.remove(block)
@@ -630,7 +630,7 @@ class AFPlayer:
         Parameters
         ----------
         
-        block : Block
+        block : blocksim.simulation.Block
             block to be saved"""
 
         self.known_blocks.append(block)
@@ -644,13 +644,13 @@ class AFPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
             
         Results
         -------
         
-        block : Block
+        block : blocksim.simulation.Block
             chosen block to mine on top of"""
 
         if self.last_block:
@@ -667,7 +667,7 @@ class AFPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the
@@ -695,7 +695,7 @@ class AFPlayer:
         Parameters
         ----------
         
-        struct : Structure
+        struct : blocksim.simulation.Structure
             data structure of the simulation
         end : bool
             flag indicating whether the method is being called after the

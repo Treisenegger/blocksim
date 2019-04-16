@@ -12,11 +12,11 @@ def constant_payoff(start_block, end_block, base):
     Parameters
     ----------
     
-    start_block : Block
+    start_block : blocksim.simulation.Block
         deepest block in the branch
-    end_block : Block
+    end_block : blocksim.simulation.Block
         shallowest block in the branch
-    base : Block
+    base : blocksim.simulation.Block
         root of the structure. Used if ``start_block`` and ``end_block``
         are not on the same branch as an ending condition for the calculation
         
@@ -74,11 +74,11 @@ def alpha_beta_step_payoff(alpha, beta, step):
         Parameters
         ----------
         
-        start_block : Block
+        start_block : blocksim.simulation.Block
             deepest block in the branch
-        end_block : Block
+        end_block : blocksim.simulation.Block
             shallowest block in the branch
-        base : Block
+        base : blocksim.simulation.Block
             root of the structure. Used if ``start_block`` and ``end_block``
             are not on the same branch as an ending condition for the calculation
             
