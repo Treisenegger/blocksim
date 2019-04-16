@@ -27,7 +27,7 @@ class Block:
         owner : blocksim.players.Player
             player that created the block
         tstamp : int
-            timestamp of moment in which the block was revealed"""
+            timestamp of moment in which the block was published"""
         
         self.parent = parent
         self.owner = owner
@@ -57,7 +57,7 @@ class Block:
         ----------
         
         tstamp : int
-            timestamp in of revelation for current block"""
+            timestamp of publication for current block"""
 
         self.tstamp = tstamp
 
@@ -150,14 +150,14 @@ class Simulation:
         players : list
             list of players to participate in the simulation
         h : dict
-            dictionary of pairs {player name: hash power value}. The greater the
-            hash power value the likelier it is for the player to get assigned
-            the next new block
+            dictionary of pairs {player name: hash power value}. The greater
+            the hash power value the likelier it is for the player to get
+            assigned the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
         safe_dist : int
-            number indicating how many blocks have to be ahead of certain block in the
-            blockchain for its payoff to be given out
+            number indicating how many blocks have to be ahead of a certain
+            block in the blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks"""
 
