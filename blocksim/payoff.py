@@ -1,7 +1,7 @@
 """Standard payoff functions for conducting the experiments. Each function receives
 a starting block and an ending block and returns the payoff corresponding to each player
-for the branch between both blocks. The ``start_block`` is the deepest block in the
-branch and the ``end_block`` is the shallowest."""
+for the branch between both blocks. The `start_block` is the deepest block in the
+branch and the `end_block` is the shallowest."""
 
 def constant_payoff(start_block, end_block, base):
 

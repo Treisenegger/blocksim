@@ -1,10 +1,10 @@
 """Standard player strategies for conducting the experiments. Each player is generated
 with a name that serves as its identificator. Also, each player has to have 6 methods
-called ``add_hidden_block``, which saves a new hidden block created by the player,
-``delete_hidden_block``, which deletes the reference to a hidden block created by the
-player after revealing it, ``add_known_block``, which saves a hidden block created by
-another player, ``strat``, which chooses a block to mine on top of, ``publish``,
-which chooses blocks to reveal, and ``inform``, which chooses blocks to communicate
+called `add_hidden_block`, which saves a new hidden block created by the player,
+`delete_hidden_block`, which deletes the reference to a hidden block created by the
+player after revealing it, `add_known_block`, which saves a hidden block created by
+another player, `strat`, which chooses a block to mine on top of, `publish`,
+which chooses blocks to reveal, and `inform`, which chooses blocks to communicate
 to other players.
 
 To create a new player you need to create a class that implements the previously
@@ -121,8 +121,8 @@ class Player:
 
         """This method is called when the state of the structure has changed
         and expects the player to return a dictionary with the pairs
-        ``player_name: set()``, where the set contains the hidden blocks
-        to be informed to the player with name ``player_name``.
+        `player_name: set()`, where the set contains the hidden blocks
+        to be informed to the player with name `player_name`.
         
         Parameters
         ----------
@@ -137,9 +137,9 @@ class Player:
         -------
         
         inform : dict
-            dictionary with the pairs ``player_name: set()``, where the set
+            dictionary with the pairs `player_name: set()`, where the set
             contains the hidden blocks to be informed to the player with name
-            ``player_name``."""
+            `player_name`."""
 
         return dict()
 
@@ -413,8 +413,8 @@ class SelfPlayer:
     """Generate player that uses the selfish strategy. Once the player discovers
     a new block, they don't reveal it unless another branch catches up to its
     depth decremented by one. For example, if the hidden branch that the player
-    has created has a depth of ``n`` and there is another branch of depth
-    ``n - 2``, the player discloses every block that has a depth of ``n - 1``
+    has created has a depth of `n` and there is another branch of depth
+    `n - 2`, the player discloses every block that has a depth of `n - 1`
     or less."""
 
     def __init__(self, name):
