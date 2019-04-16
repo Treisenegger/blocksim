@@ -21,7 +21,7 @@ method on the `blocksim.simulation.Simulation` instantiation, as well as the
 `blocksim.simulation.Simulation.print_results` method for displaying the
 results obtained through the experiment. In order to understand how to create
 custom players read the documentation section pertaining to the
-`blocksim.players` file."""
+`blocksim.players` sub-module."""
 
 from .players import *
 from .payoff import constant_payoff, alpha_beta_step_payoff
