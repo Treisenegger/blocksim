@@ -5,11 +5,143 @@ called ``add_hidden_block``, which saves a new hidden block created by the playe
 player after revealing it, ``add_known_block``, which saves a hidden block created by
 another player, ``strat``, which chooses a block to mine on top of, ``publish``,
 which chooses blocks to reveal, and ``inform``, which chooses blocks to communicate
-to other players."""
+to other players.
+
+To create a new player you need to create a class that implements the previously
+described methods. Player is a class model describing the different elements
+a player has to possess to function with the implemented simulation."""
 
 from random import sample
 
 from .simulation import Block
+
+class Player:
+    def __init__(self, name):
+
+        """Parameters
+        ---------
+        
+        name : string
+            identifier for the player. When creating a new instance of a
+            player the method has to receive a name which will serve as
+            its identifier. This parameter has to be saved as an attribute
+            called name."""
+
+        self.name = name
+
+    def add_hidden_block(self, block):
+
+        """This method is called when the player finds a new block for the
+        structure. Every block is created as hidden by default and can be
+        revealed instantly or at some point after that. The player has to
+        save a reference to each hidden block it has created so that it can
+        reveal them in the future.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new block that has just been created with the player as its owner.
+            A reference to this block has to be saved for it to be published
+            later on."""
+
+        pass
+
+    def delete_hidden_block(self, block):
+
+        """This method is called when a player chooses to publish a block so
+        that it can delete its reference from its hidden blocks.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            published block to be removed from hidden blocks."""
+
+        pass
+
+    def add_known_block(self, block):
+
+        """This method is called when another player informs the current player of
+        a hidden block that it has found so that the current player is able to mine
+        on top of it without it being revealed yet.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            hidden block that has been shown to the current player."""
+
+        pass
+
+    def strat(self, struct):
+
+        """This method is called when a player has found a new block for the structure
+        for it to choose its parent block. In other words, the player has to choose
+        on top of which block it will place its next found block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+            
+        Results
+        -------
+        
+        block : Block
+            block on top of which the current player will place its next found block"""
+
+        return Block(None, None)
+
+    def publish(self, struct, end=False):
+
+        """This method is called when the state of the structure has changed and expects
+        the player to return the hidden blocks that it wants to publish in the form of
+        a set.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the state
+            or because the simulation is ending.
+            
+        Results
+        -------
+        
+        blocks : set
+            set containing the blocks that are to be published."""
+
+        return set()
+
+    def inform(self, struct, end=False):
+
+        """This method is called when the state of the structure has changed
+        and expects the player to return a dictionary with the pairs
+        ``player_name: set()``, where the set contains the hidden blocks
+        to be informed to the player with name ``player_name``.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the
+            state or because the simulation is ending.
+            
+        Results
+        -------
+        
+        inform : dict
+            dictionary with the pairs ``player_name: set()``, where the set
+            contains the hidden blocks to be informed to the player with name
+            ``player_name``."""
+
+        return dict()
 
 
 class DefPlayerRandom:

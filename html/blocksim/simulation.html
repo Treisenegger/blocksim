@@ -33,9 +33,9 @@ from random import randint
 
 from tqdm import tqdm
 
-from tree_format import format_tree
+# from tree_format import format_tree
 
-from .payoff import constant_payoff, alpha_beta_payoff
+from .payoff import constant_payoff, alpha_beta_step_payoff
 
 
 class Block:
@@ -59,7 +59,8 @@ class Block:
         self.depth = parent.depth + 1 if parent is not None else 0
         self.tstamp = tstamp
         self.children = []
-        self.hidden = True
+        self.is_hidden = lambda: self not in self.parent.children
+        self.paid = False
 
     def add_child(self, child):
 
@@ -85,35 +86,48 @@ class Block:
 
         self.tstamp = tstamp
 
-    def set_visible(self):
+    def set_paid(self):
 
-        &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
+        &#34;&#34;&#34;Mark block as paid.&#34;&#34;&#34;
 
-        self.hidden = False
+        self.paid = True
+
+    def is_paid(self):
+
+        &#34;&#34;&#34;Check whether block has been paid.&#34;&#34;&#34;
+
+        return self.paid
 
 
 class Structure:
 
     &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
 
-    def __init__(self, payoff):
+    def __init__(self, payoff, players, safe_dist):
 
         &#34;&#34;&#34;Parameters
         ----------
         
         payoff : function
-            payoff function for simulation&#34;&#34;&#34;
+            payoff function for simulation
+        players : list
+            list of players participating to keep track of their payoffs
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out&#34;&#34;&#34;
 
         self.base = Block(None, None, 0)
-        self.base.set_visible()
+        self.base.set_paid()
         self.deep_blocks = {self.base}
         self.depth = 0
         self.last_tstamp = 0
         self.payoff = payoff
+        self.safe_dist = safe_dist
+        self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}
 
     def add_block(self, block):
 
-        &#34;&#34;&#34;Add a revealed block to the data structure.
+        &#34;&#34;&#34;Add a revealed block to the data structure. Also update partial payoffs when appropriate.
         
         Parameters
         ----------
@@ -129,6 +143,22 @@ class Structure:
         elif block.depth &gt; self.depth:
             self.deep_blocks = {block}
             self.depth = block.depth
+            if block.depth &gt; self.safe_dist:
+                first_paid = block
+                for _ in range(self.safe_dist):
+                    first_paid = first_paid.parent
+
+                last_paid = first_paid
+                last_paid.set_paid()
+                while last_paid.parent is not None and not last_paid.parent.is_paid():
+                    last_paid = last_paid.parent
+                    last_paid.set_paid()
+                
+                new_payoffs = self.payoff(first_paid, last_paid, self.base)
+
+                for player_name in new_payoffs:
+                    self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
+                    self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
 
         self.last_tstamp += 1
         
@@ -137,7 +167,7 @@ class Simulation:
 
     &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
 
-    def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+    def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         &#34;&#34;&#34;Parameters
         ----------
@@ -150,6 +180,9 @@ class Simulation:
             the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
@@ -157,9 +190,8 @@ class Simulation:
         self.h = h
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure(payoff)
+        self.struct = Structure(payoff, players, safe_dist)
         self.hidden_blocks = []
-        self.results = dict()
 
     def add_hidden_block(self, owner, parent):
 
@@ -215,7 +247,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -272,7 +303,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -291,46 +321,46 @@ class Simulation:
 
         self.uncover_on_end()
 
-        while len(self.struct.deep_blocks) &gt; 1:
-            self.struct.depth -= 1
-            new_blocks = set()
+        # while len(self.struct.deep_blocks) &gt; 1:
+        #     self.struct.depth -= 1
+        #     new_blocks = set()
 
-            for block in self.struct.deep_blocks:
-                new_blocks.add(block.parent)
+        #     for block in self.struct.deep_blocks:
+        #         new_blocks.add(block.parent)
 
-            self.struct.deep_blocks = new_blocks
+        #     self.struct.deep_blocks = new_blocks
         
-        last_block = self.struct.deep_blocks.pop()
-        self.struct.deep_blocks.add(last_block)
-        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+        # last_block = self.struct.deep_blocks.pop()
+        # self.struct.deep_blocks.add(last_block)
+        # payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
 
-        for player in self.players:
-            self.results[player.name] = dict()
-            self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
-            self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
+        # for player in self.players:
+        #     self.results[player.name] = dict()
+        #     self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
+        #     self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
 
     def print_results(self):
 
         &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
         the block number and the payoff for each of the players.&#34;&#34;&#34;
 
-        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
-        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
+        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
         print(&#34;==========&#34;)
         for player in self.players:
             print(&#34;Player: {}&#34;.format(player.name))
-            print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-            print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
             print(&#34;==========&#34;)
 
-    def print_struct(self):
+    # def print_struct(self):
 
-        &#34;&#34;&#34;Displays a representation of the data structure of the conducted
-        simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
+    #     &#34;&#34;&#34;Displays a representation of the data structure of the conducted
+    #     simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
 
-        print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
+    #     print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
 </details>
 </section>
 <section>
@@ -370,7 +400,8 @@ class Simulation:
         self.depth = parent.depth + 1 if parent is not None else 0
         self.tstamp = tstamp
         self.children = []
-        self.hidden = True
+        self.is_hidden = lambda: self not in self.parent.children
+        self.paid = False
 
     def add_child(self, child):
 
@@ -396,11 +427,17 @@ class Simulation:
 
         self.tstamp = tstamp
 
-    def set_visible(self):
+    def set_paid(self):
 
-        &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
+        &#34;&#34;&#34;Mark block as paid.&#34;&#34;&#34;
 
-        self.hidden = False</code></pre>
+        self.paid = True
+
+    def is_paid(self):
+
+        &#34;&#34;&#34;Check whether block has been paid.&#34;&#34;&#34;
+
+        return self.paid</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -436,7 +473,8 @@ class Simulation:
     self.depth = parent.depth + 1 if parent is not None else 0
     self.tstamp = tstamp
     self.children = []
-    self.hidden = True</code></pre>
+    self.is_hidden = lambda: self not in self.parent.children
+    self.paid = False</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Block.add_child"><code class="name flex">
@@ -464,6 +502,34 @@ class Simulation:
     self.children.append(child)</code></pre>
 </details>
 </dd>
+<dt id="blocksim.simulation.Block.is_paid"><code class="name flex">
+<span>def <span class="ident">is_paid</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check whether block has been paid.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_paid(self):
+
+    &#34;&#34;&#34;Check whether block has been paid.&#34;&#34;&#34;
+
+    return self.paid</code></pre>
+</details>
+</dd>
+<dt id="blocksim.simulation.Block.set_paid"><code class="name flex">
+<span>def <span class="ident">set_paid</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Mark block as paid.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_paid(self):
+
+    &#34;&#34;&#34;Mark block as paid.&#34;&#34;&#34;
+
+    self.paid = True</code></pre>
+</details>
+</dd>
 <dt id="blocksim.simulation.Block.set_tstamp"><code class="name flex">
 <span>def <span class="ident">set_tstamp</span></span>(<span>self, tstamp)</span>
 </code></dt>
@@ -489,20 +555,6 @@ class Simulation:
     self.tstamp = tstamp</code></pre>
 </details>
 </dd>
-<dt id="blocksim.simulation.Block.set_visible"><code class="name flex">
-<span>def <span class="ident">set_visible</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Reveal current block.</p></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def set_visible(self):
-
-    &#34;&#34;&#34;Reveal current block.&#34;&#34;&#34;
-
-    self.hidden = False</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 <dt id="blocksim.simulation.Simulation"><code class="flex name class">
@@ -516,7 +568,7 @@ class Simulation:
 
     &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
 
-    def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+    def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         &#34;&#34;&#34;Parameters
         ----------
@@ -529,6 +581,9 @@ class Simulation:
             the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
@@ -536,9 +591,8 @@ class Simulation:
         self.h = h
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure(payoff)
+        self.struct = Structure(payoff, players, safe_dist)
         self.hidden_blocks = []
-        self.results = dict()
 
     def add_hidden_block(self, owner, parent):
 
@@ -594,7 +648,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -651,7 +704,6 @@ class Simulation:
             
             for block in publishable:
                 self.struct.add_block(block)
-                block.set_visible()
                 self.hidden_blocks.remove(block)
             
             for player_name in informable:
@@ -670,51 +722,44 @@ class Simulation:
 
         self.uncover_on_end()
 
-        while len(self.struct.deep_blocks) &gt; 1:
-            self.struct.depth -= 1
-            new_blocks = set()
+        # while len(self.struct.deep_blocks) &gt; 1:
+        #     self.struct.depth -= 1
+        #     new_blocks = set()
 
-            for block in self.struct.deep_blocks:
-                new_blocks.add(block.parent)
+        #     for block in self.struct.deep_blocks:
+        #         new_blocks.add(block.parent)
 
-            self.struct.deep_blocks = new_blocks
+        #     self.struct.deep_blocks = new_blocks
         
-        last_block = self.struct.deep_blocks.pop()
-        self.struct.deep_blocks.add(last_block)
-        payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
+        # last_block = self.struct.deep_blocks.pop()
+        # self.struct.deep_blocks.add(last_block)
+        # payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
 
-        for player in self.players:
-            self.results[player.name] = dict()
-            self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
-            self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
+        # for player in self.players:
+        #     self.results[player.name] = dict()
+        #     self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
+        #     self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
 
     def print_results(self):
 
         &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
         the block number and the payoff for each of the players.&#34;&#34;&#34;
 
-        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
-        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+        tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
+        tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
         print(&#34;==========&#34;)
         for player in self.players:
             print(&#34;Player: {}&#34;.format(player.name))
-            print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-            print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
-            print(&#34;==========&#34;)
-
-    def print_struct(self):
-
-        &#34;&#34;&#34;Displays a representation of the data structure of the conducted
-        simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
-
-        print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
+            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+            print(&#34;==========&#34;)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Simulation.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, payoff=&lt;function alpha_beta_payoff.&lt;locals&gt;.ab_payoff at 0x7f601f3a0488&gt;)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7fbb50a140d0&gt;)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
@@ -727,12 +772,15 @@ hash power value the likelier it is for the player to get assigned
 the next new block</dd>
 <dt><strong><code>step_nr</code></strong> :&ensp;<code>int</code></dt>
 <dd>number of blocks to generate before the simulation ends</dd>
+<dt><strong><code>safe_dist</code></strong> :&ensp;<code>int</code></dt>
+<dd>number indicating how many blocks have to be ahead of certain block in the
+blockchain for its payoff to be given out</dd>
 <dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
 <dd>payoff function for simulation blocks</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def __init__(self, players, h, step_nr, payoff=alpha_beta_payoff(1, 1)):
+<pre><code class="python">def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
     &#34;&#34;&#34;Parameters
     ----------
@@ -745,6 +793,9 @@ the next new block</dd>
         the next new block
     step_nr : int
         number of blocks to generate before the simulation ends
+    safe_dist : int
+        number indicating how many blocks have to be ahead of certain block in the
+        blockchain for its payoff to be given out
     payoff : function
         payoff function for simulation blocks&#34;&#34;&#34;
 
@@ -752,9 +803,8 @@ the next new block</dd>
     self.h = h
     self.step_nr = step_nr
     self.tot_h = reduce(lambda x, y: x + y, h.values())
-    self.struct = Structure(payoff)
-    self.hidden_blocks = []
-    self.results = dict()</code></pre>
+    self.struct = Structure(payoff, players, safe_dist)
+    self.hidden_blocks = []</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Simulation.add_hidden_block"><code class="name flex">
@@ -845,7 +895,6 @@ new information.</p>
         
         for block in publishable:
             self.struct.add_block(block)
-            block.set_visible()
             self.hidden_blocks.remove(block)
         
         for player_name in informable:
@@ -867,32 +916,16 @@ the block number and the payoff for each of the players.</p></section>
     &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
     the block number and the payoff for each of the players.&#34;&#34;&#34;
 
-    tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.results.values()))
-    tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.results.values()))
+    tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
+    tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
     print(&#34;==========&#34;)
     for player in self.players:
         print(&#34;Player: {}&#34;.format(player.name))
-        print(&#34;Hash Power: {} ({}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-        print(&#34;Block Number: {} ({}%)&#34;.format(self.results[player.name][&#34;block_number&#34;], self.results[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-        print(&#34;Payoff: {} ({}%)&#34;.format(self.results[player.name][&#34;payoff&#34;], self.results[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+        print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
+        print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+        print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
         print(&#34;==========&#34;)</code></pre>
-</details>
-</dd>
-<dt id="blocksim.simulation.Simulation.print_struct"><code class="name flex">
-<span>def <span class="ident">print_struct</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Displays a representation of the data structure of the conducted
-simulation in the terminal using the library <code>format_tree</code>.</p></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def print_struct(self):
-
-    &#34;&#34;&#34;Displays a representation of the data structure of the conducted
-    simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
-
-    print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Simulation.simulate"><code class="name flex">
@@ -913,25 +946,7 @@ that each player receives and saves this data.</p></section>
     for _ in tqdm(range(self.step_nr)):
         self.step()
 
-    self.uncover_on_end()
-
-    while len(self.struct.deep_blocks) &gt; 1:
-        self.struct.depth -= 1
-        new_blocks = set()
-
-        for block in self.struct.deep_blocks:
-            new_blocks.add(block.parent)
-
-        self.struct.deep_blocks = new_blocks
-    
-    last_block = self.struct.deep_blocks.pop()
-    self.struct.deep_blocks.add(last_block)
-    payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
-
-    for player in self.players:
-        self.results[player.name] = dict()
-        self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
-        self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0</code></pre>
+    self.uncover_on_end()</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Simulation.step"><code class="name flex">
@@ -1007,7 +1022,6 @@ simulation, for them to count towards their payoff.</p></section>
         
         for block in publishable:
             self.struct.add_block(block)
-            block.set_visible()
             self.hidden_blocks.remove(block)
         
         for player_name in informable:
@@ -1029,24 +1043,31 @@ simulation, for them to count towards their payoff.</p></section>
 
     &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
 
-    def __init__(self, payoff):
+    def __init__(self, payoff, players, safe_dist):
 
         &#34;&#34;&#34;Parameters
         ----------
         
         payoff : function
-            payoff function for simulation&#34;&#34;&#34;
+            payoff function for simulation
+        players : list
+            list of players participating to keep track of their payoffs
+        safe_dist : int
+            number indicating how many blocks have to be ahead of certain block in the
+            blockchain for its payoff to be given out&#34;&#34;&#34;
 
         self.base = Block(None, None, 0)
-        self.base.set_visible()
+        self.base.set_paid()
         self.deep_blocks = {self.base}
         self.depth = 0
         self.last_tstamp = 0
         self.payoff = payoff
+        self.safe_dist = safe_dist
+        self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}
 
     def add_block(self, block):
 
-        &#34;&#34;&#34;Add a revealed block to the data structure.
+        &#34;&#34;&#34;Add a revealed block to the data structure. Also update partial payoffs when appropriate.
         
         Parameters
         ----------
@@ -1062,43 +1083,71 @@ simulation, for them to count towards their payoff.</p></section>
         elif block.depth &gt; self.depth:
             self.deep_blocks = {block}
             self.depth = block.depth
+            if block.depth &gt; self.safe_dist:
+                first_paid = block
+                for _ in range(self.safe_dist):
+                    first_paid = first_paid.parent
+
+                last_paid = first_paid
+                last_paid.set_paid()
+                while last_paid.parent is not None and not last_paid.parent.is_paid():
+                    last_paid = last_paid.parent
+                    last_paid.set_paid()
+                
+                new_payoffs = self.payoff(first_paid, last_paid, self.base)
+
+                for player_name in new_payoffs:
+                    self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
+                    self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
 
         self.last_tstamp += 1</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Structure.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, payoff)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, payoff, players, safe_dist)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
 <dd>payoff function for simulation</dd>
+<dt><strong><code>players</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of players participating to keep track of their payoffs</dd>
+<dt><strong><code>safe_dist</code></strong> :&ensp;<code>int</code></dt>
+<dd>number indicating how many blocks have to be ahead of certain block in the
+blockchain for its payoff to be given out</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def __init__(self, payoff):
+<pre><code class="python">def __init__(self, payoff, players, safe_dist):
 
     &#34;&#34;&#34;Parameters
     ----------
     
     payoff : function
-        payoff function for simulation&#34;&#34;&#34;
+        payoff function for simulation
+    players : list
+        list of players participating to keep track of their payoffs
+    safe_dist : int
+        number indicating how many blocks have to be ahead of certain block in the
+        blockchain for its payoff to be given out&#34;&#34;&#34;
 
     self.base = Block(None, None, 0)
-    self.base.set_visible()
+    self.base.set_paid()
     self.deep_blocks = {self.base}
     self.depth = 0
     self.last_tstamp = 0
-    self.payoff = payoff</code></pre>
+    self.payoff = payoff
+    self.safe_dist = safe_dist
+    self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Structure.add_block"><code class="name flex">
 <span>def <span class="ident">add_block</span></span>(<span>self, block)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Add a revealed block to the data structure.</p>
+<section class="desc"><p>Add a revealed block to the data structure. Also update partial payoffs when appropriate.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
@@ -1108,7 +1157,7 @@ simulation, for them to count towards their payoff.</p></section>
 <summary>Source code</summary>
 <pre><code class="python">def add_block(self, block):
 
-    &#34;&#34;&#34;Add a revealed block to the data structure.
+    &#34;&#34;&#34;Add a revealed block to the data structure. Also update partial payoffs when appropriate.
     
     Parameters
     ----------
@@ -1124,6 +1173,22 @@ simulation, for them to count towards their payoff.</p></section>
     elif block.depth &gt; self.depth:
         self.deep_blocks = {block}
         self.depth = block.depth
+        if block.depth &gt; self.safe_dist:
+            first_paid = block
+            for _ in range(self.safe_dist):
+                first_paid = first_paid.parent
+
+            last_paid = first_paid
+            last_paid.set_paid()
+            while last_paid.parent is not None and not last_paid.parent.is_paid():
+                last_paid = last_paid.parent
+                last_paid.set_paid()
+            
+            new_payoffs = self.payoff(first_paid, last_paid, self.base)
+
+            for player_name in new_payoffs:
+                self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
+                self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
 
     self.last_tstamp += 1</code></pre>
 </details>
@@ -1151,8 +1216,9 @@ simulation, for them to count towards their payoff.</p></section>
 <ul class="">
 <li><code><a title="blocksim.simulation.Block.__init__" href="#blocksim.simulation.Block.__init__">__init__</a></code></li>
 <li><code><a title="blocksim.simulation.Block.add_child" href="#blocksim.simulation.Block.add_child">add_child</a></code></li>
+<li><code><a title="blocksim.simulation.Block.is_paid" href="#blocksim.simulation.Block.is_paid">is_paid</a></code></li>
+<li><code><a title="blocksim.simulation.Block.set_paid" href="#blocksim.simulation.Block.set_paid">set_paid</a></code></li>
 <li><code><a title="blocksim.simulation.Block.set_tstamp" href="#blocksim.simulation.Block.set_tstamp">set_tstamp</a></code></li>
-<li><code><a title="blocksim.simulation.Block.set_visible" href="#blocksim.simulation.Block.set_visible">set_visible</a></code></li>
 </ul>
 </li>
 <li>
@@ -1162,7 +1228,6 @@ simulation, for them to count towards their payoff.</p></section>
 <li><code><a title="blocksim.simulation.Simulation.add_hidden_block" href="#blocksim.simulation.Simulation.add_hidden_block">add_hidden_block</a></code></li>
 <li><code><a title="blocksim.simulation.Simulation.check_publishable" href="#blocksim.simulation.Simulation.check_publishable">check_publishable</a></code></li>
 <li><code><a title="blocksim.simulation.Simulation.print_results" href="#blocksim.simulation.Simulation.print_results">print_results</a></code></li>
-<li><code><a title="blocksim.simulation.Simulation.print_struct" href="#blocksim.simulation.Simulation.print_struct">print_struct</a></code></li>
 <li><code><a title="blocksim.simulation.Simulation.simulate" href="#blocksim.simulation.Simulation.simulate">simulate</a></code></li>
 <li><code><a title="blocksim.simulation.Simulation.step" href="#blocksim.simulation.Simulation.step">step</a></code></li>
 <li><code><a title="blocksim.simulation.Simulation.uncover_on_end" href="#blocksim.simulation.Simulation.uncover_on_end">uncover_on_end</a></code></li>

@@ -29,6 +29,9 @@ player after revealing it, <code>add_known_block</code>, which saves a hidden bl
 another player, <code>strat</code>, which chooses a block to mine on top of, <code>publish</code>,
 which chooses blocks to reveal, and <code>inform</code>, which chooses blocks to communicate
 to other players.</p>
+<p>To create a new player you need to create a class that implements the previously
+described methods. Player is a class model describing the different elements
+a player has to possess to function with the implemented simulation.</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;Standard player strategies for conducting the experiments. Each player is generated
@@ -38,17 +41,149 @@ called ``add_hidden_block``, which saves a new hidden block created by the playe
 player after revealing it, ``add_known_block``, which saves a hidden block created by
 another player, ``strat``, which chooses a block to mine on top of, ``publish``,
 which chooses blocks to reveal, and ``inform``, which chooses blocks to communicate
-to other players.&#34;&#34;&#34;
+to other players.
+
+To create a new player you need to create a class that implements the previously
+described methods. Player is a class model describing the different elements
+a player has to possess to function with the implemented simulation.&#34;&#34;&#34;
 
 from random import sample
 
 from .simulation import Block
 
+class Player:
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ---------
+        
+        name : string
+            identifier for the player. When creating a new instance of a
+            player the method has to receive a name which will serve as
+            its identifier. This parameter has to be saved as an attribute
+            called name.&#34;&#34;&#34;
+
+        self.name = name
+
+    def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when the player finds a new block for the
+        structure. Every block is created as hidden by default and can be
+        revealed instantly or at some point after that. The player has to
+        save a reference to each hidden block it has created so that it can
+        reveal them in the future.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new block that has just been created with the player as its owner.
+            A reference to this block has to be saved for it to be published
+            later on.&#34;&#34;&#34;
+
+        pass
+
+    def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when a player chooses to publish a block so
+        that it can delete its reference from its hidden blocks.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+        pass
+
+    def add_known_block(self, block):
+
+        &#34;&#34;&#34;This method is called when another player informs the current player of
+        a hidden block that it has found so that the current player is able to mine
+        on top of it without it being revealed yet.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            hidden block that has been shown to the current player.&#34;&#34;&#34;
+
+        pass
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;This method is called when a player has found a new block for the structure
+        for it to choose its parent block. In other words, the player has to choose
+        on top of which block it will place its next found block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+            
+        Results
+        -------
+        
+        block : Block
+            block on top of which the current player will place its next found block&#34;&#34;&#34;
+
+        return Block(None, None)
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+        the player to return the hidden blocks that it wants to publish in the form of
+        a set.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the state
+            or because the simulation is ending.
+            
+        Results
+        -------
+        
+        blocks : set
+            set containing the blocks that are to be published.&#34;&#34;&#34;
+
+        return set()
+
+    def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed
+        and expects the player to return a dictionary with the pairs
+        ``player_name: set()``, where the set contains the hidden blocks
+        to be informed to the player with name ``player_name``.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the
+            state or because the simulation is ending.
+            
+        Results
+        -------
+        
+        inform : dict
+            dictionary with the pairs ``player_name: set()``, where the set
+            contains the hidden blocks to be informed to the player with name
+            ``player_name``.&#34;&#34;&#34;
+
+        return dict()
+
 
 class DefPlayerRandom:
 
-    &#34;&#34;&#34;Generate player that uses the default strategy but, when there is a tie in
-    max depth, the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+    &#34;&#34;&#34;Generate player that uses the default strategy but when there is a tie in
+    max depth the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
 
     def __init__(self, name):
 
@@ -248,12 +383,15 @@ class DefPlayer:
 
             common_block = next_blocks.pop()
             block_payoff = {block: struct.payoff(block, common_block, struct.base)
-                            for block in struct.deep_blocks}
+                for block in struct.deep_blocks}
+
             for block in block_payoff:
                 if self.name not in block_payoff[block]:
                     block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
             max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
-            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+                block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
             sel_block = max_payoff_blocks.pop()
         else:
             sel_block = next_blocks.pop()
@@ -423,8 +561,8 @@ class SelfPlayer:
 
         if end:
             prev_blocks = self.hidden_blocks
-            self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-            return set(filter(lambda x: not x.parent.hidden, prev_blocks))
+            self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+            return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
 
         if self.just_forked:
             self.just_forked = False
@@ -442,14 +580,14 @@ class SelfPlayer:
             else:
                 if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
                     self.last_published = max(publish, key=lambda x: x.depth)
                     return publish
                 else:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden or x.depth &gt; struct.depth, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden and x.depth &lt;= struct.depth, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
                     self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
                     return publish
         else:
@@ -1092,12 +1230,15 @@ the max amount of payoff.</p></section>
 
             common_block = next_blocks.pop()
             block_payoff = {block: struct.payoff(block, common_block, struct.base)
-                            for block in struct.deep_blocks}
+                for block in struct.deep_blocks}
+
             for block in block_payoff:
                 if self.name not in block_payoff[block]:
                     block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
             max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
-            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+                block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
             sel_block = max_payoff_blocks.pop()
         else:
             sel_block = next_blocks.pop()
@@ -1388,12 +1529,15 @@ payoff.</p>
 
         common_block = next_blocks.pop()
         block_payoff = {block: struct.payoff(block, common_block, struct.base)
-                        for block in struct.deep_blocks}
+            for block in struct.deep_blocks}
+
         for block in block_payoff:
             if self.name not in block_payoff[block]:
                 block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
         max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
-        max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+        max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+            block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
         sel_block = max_payoff_blocks.pop()
     else:
         sel_block = next_blocks.pop()
@@ -1407,14 +1551,14 @@ payoff.</p>
 <span>class <span class="ident">DefPlayerRandom</span></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Generate player that uses the default strategy but, when there is a tie in
-max depth, the algorithm chooses randomly between the deepest blocks to mine.</p></section>
+<section class="desc"><p>Generate player that uses the default strategy but when there is a tie in
+max depth the algorithm chooses randomly between the deepest blocks to mine.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class DefPlayerRandom:
 
-    &#34;&#34;&#34;Generate player that uses the default strategy but, when there is a tie in
-    max depth, the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+    &#34;&#34;&#34;Generate player that uses the default strategy but when there is a tie in
+    max depth the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
 
     def __init__(self, name):
 
@@ -1760,6 +1904,404 @@ deepest blocks in the structure.</p>
 </dd>
 </dl>
 </dd>
+<dt id="blocksim.players.Player"><code class="flex name class">
+<span>class <span class="ident">Player</span></span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Player:
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ---------
+        
+        name : string
+            identifier for the player. When creating a new instance of a
+            player the method has to receive a name which will serve as
+            its identifier. This parameter has to be saved as an attribute
+            called name.&#34;&#34;&#34;
+
+        self.name = name
+
+    def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when the player finds a new block for the
+        structure. Every block is created as hidden by default and can be
+        revealed instantly or at some point after that. The player has to
+        save a reference to each hidden block it has created so that it can
+        reveal them in the future.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            new block that has just been created with the player as its owner.
+            A reference to this block has to be saved for it to be published
+            later on.&#34;&#34;&#34;
+
+        pass
+
+    def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when a player chooses to publish a block so
+        that it can delete its reference from its hidden blocks.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+        pass
+
+    def add_known_block(self, block):
+
+        &#34;&#34;&#34;This method is called when another player informs the current player of
+        a hidden block that it has found so that the current player is able to mine
+        on top of it without it being revealed yet.
+        
+        Parameters
+        ----------
+        
+        block : Block
+            hidden block that has been shown to the current player.&#34;&#34;&#34;
+
+        pass
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;This method is called when a player has found a new block for the structure
+        for it to choose its parent block. In other words, the player has to choose
+        on top of which block it will place its next found block.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+            
+        Results
+        -------
+        
+        block : Block
+            block on top of which the current player will place its next found block&#34;&#34;&#34;
+
+        return Block(None, None)
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+        the player to return the hidden blocks that it wants to publish in the form of
+        a set.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the state
+            or because the simulation is ending.
+            
+        Results
+        -------
+        
+        blocks : set
+            set containing the blocks that are to be published.&#34;&#34;&#34;
+
+        return set()
+
+    def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed
+        and expects the player to return a dictionary with the pairs
+        ``player_name: set()``, where the set contains the hidden blocks
+        to be informed to the player with name ``player_name``.
+        
+        Parameters
+        ----------
+        
+        struct : Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the
+            state or because the simulation is ending.
+            
+        Results
+        -------
+        
+        inform : dict
+            dictionary with the pairs ``player_name: set()``, where the set
+            contains the hidden blocks to be informed to the player with name
+            ``player_name``.&#34;&#34;&#34;
+
+        return dict()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.players.Player.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the player. When creating a new instance of a
+player the method has to receive a name which will serve as
+its identifier. This parameter has to be saved as an attribute
+called name.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ---------
+    
+    name : string
+        identifier for the player. When creating a new instance of a
+        player the method has to receive a name which will serve as
+        its identifier. This parameter has to be saved as an attribute
+        called name.&#34;&#34;&#34;
+
+    self.name = name</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.add_hidden_block"><code class="name flex">
+<span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the player finds a new block for the
+structure. Every block is created as hidden by default and can be
+revealed instantly or at some point after that. The player has to
+save a reference to each hidden block it has created so that it can
+reveal them in the future.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>new block that has just been created with the player as its owner.
+A reference to this block has to be saved for it to be published
+later on.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;This method is called when the player finds a new block for the
+    structure. Every block is created as hidden by default and can be
+    revealed instantly or at some point after that. The player has to
+    save a reference to each hidden block it has created so that it can
+    reveal them in the future.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        new block that has just been created with the player as its owner.
+        A reference to this block has to be saved for it to be published
+        later on.&#34;&#34;&#34;
+
+    pass</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.add_known_block"><code class="name flex">
+<span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when another player informs the current player of
+a hidden block that it has found so that the current player is able to mine
+on top of it without it being revealed yet.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>hidden block that has been shown to the current player.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;This method is called when another player informs the current player of
+    a hidden block that it has found so that the current player is able to mine
+    on top of it without it being revealed yet.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        hidden block that has been shown to the current player.&#34;&#34;&#34;
+
+    pass</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.delete_hidden_block"><code class="name flex">
+<span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when a player chooses to publish a block so
+that it can delete its reference from its hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>published block to be removed from hidden blocks.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;This method is called when a player chooses to publish a block so
+    that it can delete its reference from its hidden blocks.
+    
+    Parameters
+    ----------
+    
+    block : Block
+        published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+    pass</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.inform"><code class="name flex">
+<span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the state of the structure has changed
+and expects the player to return a dictionary with the pairs
+<code>player_name: set()</code>, where the set contains the hidden blocks
+to be informed to the player with name <code>player_name</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called on update of the
+state or because the simulation is ending.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>inform</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary with the pairs <code>player_name: set()</code>, where the set
+contains the hidden blocks to be informed to the player with name
+<code>player_name</code>.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;This method is called when the state of the structure has changed
+    and expects the player to return a dictionary with the pairs
+    ``player_name: set()``, where the set contains the hidden blocks
+    to be informed to the player with name ``player_name``.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation containing the blockchain.
+    end : bool
+        flag indicating whether the method is being called on update of the
+        state or because the simulation is ending.
+        
+    Results
+    -------
+    
+    inform : dict
+        dictionary with the pairs ``player_name: set()``, where the set
+        contains the hidden blocks to be informed to the player with name
+        ``player_name``.&#34;&#34;&#34;
+
+    return dict()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.publish"><code class="name flex">
+<span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the state of the structure has changed and expects
+the player to return the hidden blocks that it wants to publish in the form of
+a set.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called on update of the state
+or because the simulation is ending.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing the blocks that are to be published.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+    the player to return the hidden blocks that it wants to publish in the form of
+    a set.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation containing the blockchain.
+    end : bool
+        flag indicating whether the method is being called on update of the state
+        or because the simulation is ending.
+        
+    Results
+    -------
+    
+    blocks : set
+        set containing the blocks that are to be published.&#34;&#34;&#34;
+
+    return set()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.players.Player.strat"><code class="name flex">
+<span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when a player has found a new block for the structure
+for it to choose its parent block. In other words, the player has to choose
+on top of which block it will place its next found block.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>Structure</code></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>Block</code></dt>
+<dd>block on top of which the current player will place its next found block</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;This method is called when a player has found a new block for the structure
+    for it to choose its parent block. In other words, the player has to choose
+    on top of which block it will place its next found block.
+    
+    Parameters
+    ----------
+    
+    struct : Structure
+        data structure of the simulation containing the blockchain.
+        
+    Results
+    -------
+    
+    block : Block
+        block on top of which the current player will place its next found block&#34;&#34;&#34;
+
+    return Block(None, None)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="blocksim.players.SelfPlayer"><code class="flex name class">
 <span>class <span class="ident">SelfPlayer</span></span>
 </code></dt>
@@ -1889,8 +2431,8 @@ or less.</p></section>
 
         if end:
             prev_blocks = self.hidden_blocks
-            self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-            return set(filter(lambda x: not x.parent.hidden, prev_blocks))
+            self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+            return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
 
         if self.just_forked:
             self.just_forked = False
@@ -1908,14 +2450,14 @@ or less.</p></section>
             else:
                 if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
                     self.last_published = max(publish, key=lambda x: x.depth)
                     return publish
                 else:
                     prev_blocks = self.hidden_blocks
-                    self.hidden_blocks = list(filter(lambda x: x.parent.hidden or x.depth &gt; struct.depth, self.hidden_blocks))
-                    publish = set(filter(lambda x: not x.parent.hidden and x.depth &lt;= struct.depth, prev_blocks))
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
                     self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
                     return publish
         else:
@@ -2138,8 +2680,8 @@ simulation has ended or before that</dd>
 
     if end:
         prev_blocks = self.hidden_blocks
-        self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-        return set(filter(lambda x: not x.parent.hidden, prev_blocks))
+        self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+        return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
 
     if self.just_forked:
         self.just_forked = False
@@ -2157,14 +2699,14 @@ simulation has ended or before that</dd>
         else:
             if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
                 prev_blocks = self.hidden_blocks
-                self.hidden_blocks = list(filter(lambda x: x.parent.hidden, self.hidden_blocks))
-                publish = set(filter(lambda x: not x.parent.hidden, prev_blocks))
+                self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
                 self.last_published = max(publish, key=lambda x: x.depth)
                 return publish
             else:
                 prev_blocks = self.hidden_blocks
-                self.hidden_blocks = list(filter(lambda x: x.parent.hidden or x.depth &gt; struct.depth, self.hidden_blocks))
-                publish = set(filter(lambda x: not x.parent.hidden and x.depth &lt;= struct.depth, prev_blocks))
+                self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
                 self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
                 return publish
     else:
@@ -2276,6 +2818,18 @@ case they mine on top of the last hidden block they have placed.</p>
 <li><code><a title="blocksim.players.DefPlayerRandom.inform" href="#blocksim.players.DefPlayerRandom.inform">inform</a></code></li>
 <li><code><a title="blocksim.players.DefPlayerRandom.publish" href="#blocksim.players.DefPlayerRandom.publish">publish</a></code></li>
 <li><code><a title="blocksim.players.DefPlayerRandom.strat" href="#blocksim.players.DefPlayerRandom.strat">strat</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.players.Player" href="#blocksim.players.Player">Player</a></code></h4>
+<ul class="two-column">
+<li><code><a title="blocksim.players.Player.__init__" href="#blocksim.players.Player.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.players.Player.add_hidden_block" href="#blocksim.players.Player.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.players.Player.add_known_block" href="#blocksim.players.Player.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.players.Player.delete_hidden_block" href="#blocksim.players.Player.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.players.Player.inform" href="#blocksim.players.Player.inform">inform</a></code></li>
+<li><code><a title="blocksim.players.Player.publish" href="#blocksim.players.Player.publish">publish</a></code></li>
+<li><code><a title="blocksim.players.Player.strat" href="#blocksim.players.Player.strat">strat</a></code></li>
 </ul>
 </li>
 <li>

@@ -60,7 +60,7 @@ def constant_payoff(start_block, end_block, base):
     
     block = start_block
 
-    while (block != end_block) and (block != base):
+    while (block != end_block.parent) and (block != base):
         if block.owner.name not in payoff_dict:
             payoff_dict[block.owner.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
         payoff_dict[block.owner.name][&#34;block_number&#34;] += 1
@@ -69,7 +69,7 @@ def constant_payoff(start_block, end_block, base):
 
     return payoff_dict
 
-def alpha_beta_payoff(alpha, beta):
+def alpha_beta_step_payoff(alpha, beta, step):
 
     &#34;&#34;&#34;Payoff function factory. This function creates a payoff function using the
     given parameters.
@@ -82,6 +82,9 @@ def alpha_beta_payoff(alpha, beta):
     beta : float
         number that accounts for the diminishment of the payoff for each block in
         the Bitcoin structure after a certain amount of blocks have been created
+    step : int
+        amount of blocks in the blockchain after which the payoff for each block
+        diminishes
         
     Results
     -------
@@ -119,11 +122,11 @@ def alpha_beta_payoff(alpha, beta):
         
         block = start_block
 
-        while (block != end_block) and (block != base):
+        while (block != end_block.parent) and (block != base):
             if block.owner.name not in payoff_dict:
                 payoff_dict[block.owner.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
             payoff_dict[block.owner.name][&#34;block_number&#34;] += 1
-            payoff_dict[block.owner.name][&#34;payoff&#34;] += (alpha**block.tstamp)*(beta**block.depth)
+            payoff_dict[block.owner.name][&#34;payoff&#34;] += (alpha**block.tstamp)*(beta**(block.depth // step))
             block = block.parent
 
         return payoff_dict
@@ -137,8 +140,8 @@ def alpha_beta_payoff(alpha, beta):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="blocksim.payoff.alpha_beta_payoff"><code class="name flex">
-<span>def <span class="ident">alpha_beta_payoff</span></span>(<span>alpha, beta)</span>
+<dt id="blocksim.payoff.alpha_beta_step_payoff"><code class="name flex">
+<span>def <span class="ident">alpha_beta_step_payoff</span></span>(<span>alpha, beta, step)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Payoff function factory. This function creates a payoff function using the
@@ -150,6 +153,9 @@ given parameters.</p>
 <dt><strong><code>beta</code></strong> :&ensp;<code>float</code></dt>
 <dd>number that accounts for the diminishment of the payoff for each block in
 the Bitcoin structure after a certain amount of blocks have been created</dd>
+<dt><strong><code>step</code></strong> :&ensp;<code>int</code></dt>
+<dd>amount of blocks in the blockchain after which the payoff for each block
+diminishes</dd>
 </dl>
 <h2 id="results">Results</h2>
 <dl>
@@ -159,7 +165,7 @@ purposes</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def alpha_beta_payoff(alpha, beta):
+<pre><code class="python">def alpha_beta_step_payoff(alpha, beta, step):
 
     &#34;&#34;&#34;Payoff function factory. This function creates a payoff function using the
     given parameters.
@@ -172,6 +178,9 @@ purposes</dd>
     beta : float
         number that accounts for the diminishment of the payoff for each block in
         the Bitcoin structure after a certain amount of blocks have been created
+    step : int
+        amount of blocks in the blockchain after which the payoff for each block
+        diminishes
         
     Results
     -------
@@ -209,11 +218,11 @@ purposes</dd>
         
         block = start_block
 
-        while (block != end_block) and (block != base):
+        while (block != end_block.parent) and (block != base):
             if block.owner.name not in payoff_dict:
                 payoff_dict[block.owner.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
             payoff_dict[block.owner.name][&#34;block_number&#34;] += 1
-            payoff_dict[block.owner.name][&#34;payoff&#34;] += (alpha**block.tstamp)*(beta**block.depth)
+            payoff_dict[block.owner.name][&#34;payoff&#34;] += (alpha**block.tstamp)*(beta**(block.depth // step))
             block = block.parent
 
         return payoff_dict
@@ -273,7 +282,7 @@ of blocks owned by each player in the branch</dd>
     
     block = start_block
 
-    while (block != end_block) and (block != base):
+    while (block != end_block.parent) and (block != base):
         if block.owner.name not in payoff_dict:
             payoff_dict[block.owner.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
         payoff_dict[block.owner.name][&#34;block_number&#34;] += 1
@@ -301,7 +310,7 @@ of blocks owned by each player in the branch</dd>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="blocksim.payoff.alpha_beta_payoff" href="#blocksim.payoff.alpha_beta_payoff">alpha_beta_payoff</a></code></li>
+<li><code><a title="blocksim.payoff.alpha_beta_step_payoff" href="#blocksim.payoff.alpha_beta_step_payoff">alpha_beta_step_payoff</a></code></li>
 <li><code><a title="blocksim.payoff.constant_payoff" href="#blocksim.payoff.constant_payoff">constant_payoff</a></code></li>
 </ul>
 </li>
