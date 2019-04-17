@@ -1,8 +1,5 @@
 """Classes consisting of the main logic behind the simulations."""
 
-import numpy as np
-
-from types import MethodType
 from functools import reduce
 from random import randint
 
@@ -333,6 +330,6 @@ class Simulation:
     # def print_struct(self):
 
     #     """Displays a representation of the data structure of the conducted
-    #     simulation in the terminal using the library ``format_tree``."""
+    #     simulation in the terminal using the library `format_tree`."""
 
     #     print(format_tree(self.struct.base, lambda x: "{}-{}".format(x.owner.name, x.tstamp) if not x.owner is None else 'None', lambda x: x.children))
