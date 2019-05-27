@@ -7,3 +7,7 @@ BlockSim is a Python library for conducting simulations to test the efficiency o
 To install the dependencies needed for running BlockSim, run the command
 
 ```pip install -r requirements.txt```
+
+## Miner example
+
+## Running the simulation
