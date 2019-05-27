@@ -25,23 +25,23 @@ to pit different strategies for the mining of blocks for the data …" />
 to pit different strategies for the mining of blocks for the data structure of Bitcoin
 against each other.</p>
 <p>The simulation submodule consists of the main logic behind the simulations, whilst
-the payoff and players submodules consist of standard payoff functions and mining
+the payoff and miners submodules consist of standard payoff functions and mining
 strategies, respectively.</p>
 <p>The file <code>experiment.py</code>, located outside of this package, provides a standard
 example on how to run simulations. In order to do this you need to import the
-<a title="blocksim.simulation.Simulation" href="simulation.html#blocksim.simulation.Simulation"><code>Simulation</code></a> class, the players you want to use and the
+<a title="blocksim.simulation.Simulation" href="simulation.html#blocksim.simulation.Simulation"><code>Simulation</code></a> class, the miners you want to use and the
 payoff function to be utilized. After this you need to instantiate the
 <a title="blocksim.simulation.Simulation" href="simulation.html#blocksim.simulation.Simulation"><code>Simulation</code></a> class, providing it with a list containing
-the instantiated players which will participate, a dictionary containing the
-pairs <code>player_name: hash_power</code>, the amount of blocks that need to be placed
+the instantiated miners which will participate, a dictionary containing the
+pairs <code>miner_name: hash_power</code>, the amount of blocks that need to be placed
 after a certain block in the blockchain for it to be paid off and the payoff
 function for calculating individual earnings.</p>
 <p>Afterwards, you will need to call the <a title="blocksim.simulation.Simulation.simulate" href="simulation.html#blocksim.simulation.Simulation.simulate"><code>Simulation.simulate()</code></a>
 method on the <a title="blocksim.simulation.Simulation" href="simulation.html#blocksim.simulation.Simulation"><code>Simulation</code></a> instantiation, as well as the
 <a title="blocksim.simulation.Simulation.print_results" href="simulation.html#blocksim.simulation.Simulation.print_results"><code>Simulation.print_results()</code></a> method for displaying the
 results obtained through the experiment. In order to understand how to create
-custom players read the documentation section pertaining to the
-<a title="blocksim.players" href="players.html"><code>blocksim.players</code></a> file.</p>
+custom miners read the documentation section pertaining to the
+<a title="blocksim.miners" href="miners.html"><code>blocksim.miners</code></a> sub-module.</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;BlockSim provides functions and classes that allow the construction of simulations
@@ -49,16 +49,16 @@ to pit different strategies for the mining of blocks for the data structure of B
 against each other.
 
 The simulation submodule consists of the main logic behind the simulations, whilst
-the payoff and players submodules consist of standard payoff functions and mining
+the payoff and miners submodules consist of standard payoff functions and mining
 strategies, respectively.
 
 The file `experiment.py`, located outside of this package, provides a standard
 example on how to run simulations. In order to do this you need to import the
-`blocksim.simulation.Simulation` class, the players you want to use and the
+`blocksim.simulation.Simulation` class, the miners you want to use and the
 payoff function to be utilized. After this you need to instantiate the
 `blocksim.simulation.Simulation` class, providing it with a list containing
-the instantiated players which will participate, a dictionary containing the
-pairs `player_name: hash_power`, the amount of blocks that need to be placed
+the instantiated miners which will participate, a dictionary containing the
+pairs `miner_name: hash_power`, the amount of blocks that need to be placed
 after a certain block in the blockchain for it to be paid off and the payoff
 function for calculating individual earnings.
 
@@ -66,10 +66,10 @@ Afterwards, you will need to call the `blocksim.simulation.Simulation.simulate`
 method on the `blocksim.simulation.Simulation` instantiation, as well as the
 `blocksim.simulation.Simulation.print_results` method for displaying the
 results obtained through the experiment. In order to understand how to create
-custom players read the documentation section pertaining to the
-`blocksim.players` file.&#34;&#34;&#34;
+custom miners read the documentation section pertaining to the
+`blocksim.miners` sub-module.&#34;&#34;&#34;
 
-from .players import *
+from .miners import *
 from .payoff import constant_payoff, alpha_beta_step_payoff
 from .simulation import Simulation, Block</code></pre>
 </details>
@@ -77,6 +77,11 @@ from .simulation import Simulation, Block</code></pre>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="blocksim.miners" href="miners.html">blocksim.miners</a></code></dt>
+<dd>
+<section class="desc"><p>Standard miner strategies for conducting the experiments. Each miner is generated
+with a name that serves as its identificator. Also, each miner has …</p></section>
+</dd>
 <dt><code class="name"><a title="blocksim.payoff" href="payoff.html">blocksim.payoff</a></code></dt>
 <dd>
 <section class="desc"><p>Standard payoff functions for conducting the experiments. Each function receives
@@ -108,6 +113,7 @@ with a name that serves as its identificator. Also, each player …</p></section
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="blocksim.miners" href="miners.html">blocksim.miners</a></code></li>
 <li><code><a title="blocksim.payoff" href="payoff.html">blocksim.payoff</a></code></li>
 <li><code><a title="blocksim.players" href="players.html">blocksim.players</a></code></li>
 <li><code><a title="blocksim.simulation" href="simulation.html">blocksim.simulation</a></code></li>

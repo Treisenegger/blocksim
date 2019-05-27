@@ -36,11 +36,11 @@ a player has to possess to function with the implemented simulation.</p>
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;Standard player strategies for conducting the experiments. Each player is generated
 with a name that serves as its identificator. Also, each player has to have 6 methods
-called ``add_hidden_block``, which saves a new hidden block created by the player,
-``delete_hidden_block``, which deletes the reference to a hidden block created by the
-player after revealing it, ``add_known_block``, which saves a hidden block created by
-another player, ``strat``, which chooses a block to mine on top of, ``publish``,
-which chooses blocks to reveal, and ``inform``, which chooses blocks to communicate
+called `add_hidden_block`, which saves a new hidden block created by the player,
+`delete_hidden_block`, which deletes the reference to a hidden block created by the
+player after revealing it, `add_known_block`, which saves a hidden block created by
+another player, `strat`, which chooses a block to mine on top of, `publish`,
+which chooses blocks to reveal, and `inform`, which chooses blocks to communicate
 to other players.
 
 To create a new player you need to create a class that implements the previously
@@ -157,8 +157,8 @@ class Player:
 
         &#34;&#34;&#34;This method is called when the state of the structure has changed
         and expects the player to return a dictionary with the pairs
-        ``player_name: set()``, where the set contains the hidden blocks
-        to be informed to the player with name ``player_name``.
+        `player_name: set()`, where the set contains the hidden blocks
+        to be informed to the player with name `player_name`.
         
         Parameters
         ----------
@@ -173,9 +173,9 @@ class Player:
         -------
         
         inform : dict
-            dictionary with the pairs ``player_name: set()``, where the set
+            dictionary with the pairs `player_name: set()`, where the set
             contains the hidden blocks to be informed to the player with name
-            ``player_name``.&#34;&#34;&#34;
+            `player_name`.&#34;&#34;&#34;
 
         return dict()
 
@@ -449,8 +449,8 @@ class SelfPlayer:
     &#34;&#34;&#34;Generate player that uses the selfish strategy. Once the player discovers
     a new block, they don&#39;t reveal it unless another branch catches up to its
     depth decremented by one. For example, if the hidden branch that the player
-    has created has a depth of ``n`` and there is another branch of depth
-    ``n - 2``, the player discloses every block that has a depth of ``n - 1``
+    has created has a depth of `n` and there is another branch of depth
+    `n - 2`, the player discloses every block that has a depth of `n - 1`
     or less.&#34;&#34;&#34;
 
     def __init__(self, name):
@@ -2017,8 +2017,8 @@ deepest blocks in the structure.</p>
 
         &#34;&#34;&#34;This method is called when the state of the structure has changed
         and expects the player to return a dictionary with the pairs
-        ``player_name: set()``, where the set contains the hidden blocks
-        to be informed to the player with name ``player_name``.
+        `player_name: set()`, where the set contains the hidden blocks
+        to be informed to the player with name `player_name`.
         
         Parameters
         ----------
@@ -2033,9 +2033,9 @@ deepest blocks in the structure.</p>
         -------
         
         inform : dict
-            dictionary with the pairs ``player_name: set()``, where the set
+            dictionary with the pairs `player_name: set()`, where the set
             contains the hidden blocks to be informed to the player with name
-            ``player_name``.&#34;&#34;&#34;
+            `player_name`.&#34;&#34;&#34;
 
         return dict()</code></pre>
 </details>
@@ -2172,7 +2172,7 @@ and expects the player to return a dictionary with the pairs
 to be informed to the player with name <code>player_name</code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>struct</code></strong> :&ensp;<code>blocksim.simulation.Structure</code></dt>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
 <dd>data structure of the simulation containing the blockchain.</dd>
 <dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
 <dd>flag indicating whether the method is being called on update of the
@@ -2191,8 +2191,8 @@ contains the hidden blocks to be informed to the player with name
 
     &#34;&#34;&#34;This method is called when the state of the structure has changed
     and expects the player to return a dictionary with the pairs
-    ``player_name: set()``, where the set contains the hidden blocks
-    to be informed to the player with name ``player_name``.
+    `player_name: set()`, where the set contains the hidden blocks
+    to be informed to the player with name `player_name`.
     
     Parameters
     ----------
@@ -2207,9 +2207,9 @@ contains the hidden blocks to be informed to the player with name
     -------
     
     inform : dict
-        dictionary with the pairs ``player_name: set()``, where the set
+        dictionary with the pairs `player_name: set()`, where the set
         contains the hidden blocks to be informed to the player with name
-        ``player_name``.&#34;&#34;&#34;
+        `player_name`.&#34;&#34;&#34;
 
     return dict()</code></pre>
 </details>
@@ -2319,8 +2319,8 @@ or less.</p></section>
     &#34;&#34;&#34;Generate player that uses the selfish strategy. Once the player discovers
     a new block, they don&#39;t reveal it unless another branch catches up to its
     depth decremented by one. For example, if the hidden branch that the player
-    has created has a depth of ``n`` and there is another branch of depth
-    ``n - 2``, the player discloses every block that has a depth of ``n - 1``
+    has created has a depth of `n` and there is another branch of depth
+    `n - 2`, the player discloses every block that has a depth of `n - 1`
     or less.&#34;&#34;&#34;
 
     def __init__(self, name):

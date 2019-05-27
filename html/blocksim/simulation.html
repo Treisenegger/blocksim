@@ -25,9 +25,6 @@
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;Classes consisting of the main logic behind the simulations.&#34;&#34;&#34;
 
-import numpy as np
-
-from types import MethodType
 from functools import reduce
 from random import randint
 
@@ -49,8 +46,8 @@ class Block:
         
         parent : blocksim.simulation.Block
             parent block for the new block
-        owner : blocksim.players.Player
-            player that created the block
+        owner : blocksim.miners.Miner
+            miner that created the block
         tstamp : int
             timestamp of moment in which the block was published&#34;&#34;&#34;
         
@@ -76,7 +73,7 @@ class Block:
 
     def set_tstamp(self, tstamp):
 
-        &#34;&#34;&#34;Set timestamp of revelation for current block.
+        &#34;&#34;&#34;Set timestamp of publication for current block.
         
         Parameters
         ----------
@@ -103,15 +100,15 @@ class Structure:
 
     &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
 
-    def __init__(self, payoff, players, safe_dist):
+    def __init__(self, payoff, miners, safe_dist):
 
         &#34;&#34;&#34;Parameters
         ----------
         
         payoff : function
             payoff function for simulation
-        players : list
-            list of players participating to keep track of their payoffs
+        miners : list
+            list of miners participating to keep track of their payoffs
         safe_dist : int
             number indicating how many blocks have to be ahead of certain block in the
             blockchain for its payoff to be given out&#34;&#34;&#34;
@@ -123,7 +120,7 @@ class Structure:
         self.last_tstamp = 0
         self.payoff = payoff
         self.safe_dist = safe_dist
-        self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}
+        self.partial_payoff = {miner.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for miner in miners}
 
     def add_block(self, block):
 
@@ -156,9 +153,9 @@ class Structure:
                 
                 new_payoffs = self.payoff(first_paid, last_paid, self.base)
 
-                for player_name in new_payoffs:
-                    self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
-                    self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
+                for miner_name in new_payoffs:
+                    self.partial_payoff[miner_name][&#39;block_number&#39;] += new_payoffs[miner_name][&#39;block_number&#39;]
+                    self.partial_payoff[miner_name][&#39;payoff&#39;] += new_payoffs[miner_name][&#39;payoff&#39;]
 
         self.last_tstamp += 1
         
@@ -167,16 +164,16 @@ class Simulation:
 
     &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
 
-    def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
+    def __init__(self, miners, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         &#34;&#34;&#34;Parameters
         ----------
         
-        players : list
-            list of players to participate in the simulation
+        miners : list
+            list of miners to participate in the simulation
         h : dict
-            dictionary of pairs {player name: hash power value}. The greater
-            the hash power value the likelier it is for the player to get
+            dictionary of pairs {miner name: hash power value}. The greater
+            the hash power value the likelier it is for the miner to get
             assigned the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
@@ -186,11 +183,11 @@ class Simulation:
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
-        self.players = players
+        self.miners = miners
         self.h = h
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure(payoff, players, safe_dist)
+        self.struct = Structure(payoff, miners, safe_dist)
         self.hidden_blocks = []
 
     def add_hidden_block(self, owner, parent):
@@ -200,7 +197,7 @@ class Simulation:
         Parameters
         ----------
         
-        owner : blocksim.players.Player
+        owner : blocksim.miners.Miner
             owner of the new block that is being created
         parent : blocksim.simulation.Block
             parent block for the new block&#34;&#34;&#34;
@@ -209,68 +206,68 @@ class Simulation:
         self.hidden_blocks.append(new_block)
         owner.add_hidden_block(new_block)
 
-    def check_publishable(self, player):
+    def check_publishable(self, miner):
 
         &#34;&#34;&#34;Spreads information based on state changes of the data structure and
-        communication between players. Firstly, the owner of the new block can choose
+        communication between miners. Firstly, the owner of the new block can choose
         to reveal any of their hidden blocks or to communicate any of them to other
-        players. After this, any player which has gotten new information through
+        miners. After this, any miner which has gotten new information through
         the reveal of a new block or through a message received can choose to
-        reveal a block or communicate blocks to other players. This iterative
-        process continues until there is a cycle in which no players have gotten
+        reveal a block or communicate blocks to other miners. This iterative
+        process continues until there is a cycle in which no miners have gotten
         new information.
         
         Parameters
         ----------
         
-        player : blocksim.players.Player
+        miner : blocksim.miners.Miner
             owner of the block generated in the current cycle&#34;&#34;&#34;
 
-        updated_players = {player}
-        while updated_players:
-            prev_players = updated_players
-            updated_players = set()
+        updated_miners = {miner}
+        while updated_miners:
+            prev_miners = updated_miners
+            updated_miners = set()
             publishable = set()
             informable = dict()
-            for player in prev_players:
-                publish = player.publish(self.struct)
-                inform = player.inform(self.struct)
+            for miner in prev_miners:
+                publish = miner.publish(self.struct)
+                inform = miner.inform(self.struct)
                 if publish:
-                    updated_players = set(self.players)
+                    updated_miners = set(self.miners)
                     publishable |= publish
                 if inform:
-                    for i_player in inform:
-                        updated_players.add(i_player)
-                        if i_player not in informable:
-                            informable[i_player] = set()
-                        informable[i_player] |= inform[i_player]
+                    for i_miner in inform:
+                        updated_miners.add(i_miner)
+                        if i_miner not in informable:
+                            informable[i_miner] = set()
+                        informable[i_miner] |= inform[i_miner]
             
             for block in publishable:
                 self.struct.add_block(block)
                 self.hidden_blocks.remove(block)
             
-            for player_name in informable:
-                for block in informable[player]:
-                    player = next((x for x in self.players if x.name == player_name), None)
-                    player.add_known_block(block)
+            for miner_name in informable:
+                for block in informable[miner_name]:
+                    miner = next((x for x in self.miners if x.name == miner_name), None)
+                    miner.add_known_block(block)
 
     def step(self):
 
         &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
-        chooses one player randomly, with the probability of selecting a
-        player being determined by their hash power value divided by
-        the total hash power value of all players. After this a block
-        is created with said player as its owner. Lastly, we call the
+        chooses one miner randomly, with the probability of selecting a
+        miner being determined by their hash power value divided by
+        the total hash power value of all miners. After this a block
+        is created with said miner as its owner. Lastly, we call the
         `blocksim.simulation.Simulation.check_publishable` method, which
-        spreads information between the different players.&#34;&#34;&#34;
+        spreads information between the different miners.&#34;&#34;&#34;
 
-        rand_player = randint(1, self.tot_h)
-        for player in self.players:
-            if rand_player &lt;= self.h[player.name]:
-                owner = player
+        rand_miner = randint(1, self.tot_h)
+        for miner in self.miners:
+            if rand_miner &lt;= self.h[miner.name]:
+                owner = miner
                 break
             else:
-                rand_player -= self.h[player.name]
+                rand_miner -= self.h[miner.name]
         parent = owner.strat(self.struct)
         self.add_hidden_block(owner, parent)
         self.check_publishable(owner)
@@ -279,86 +276,68 @@ class Simulation:
 
         &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
         this method is called at the end of the process, to make sure that
-        every player can disclose their hidden blocks at the end of the
+        every miner can disclose their hidden blocks at the end of the
         simulation, for them to count towards their payoff.&#34;&#34;&#34;
 
-        updated_players = set(self.players)
-        while updated_players:
-            prev_players = updated_players
-            updated_players = set()
+        updated_miners = set(self.miners)
+        while updated_miners:
+            prev_miners = updated_miners
+            updated_miners = set()
             publishable = set()
             informable = dict()
-            for player in prev_players:
-                publish = player.publish(self.struct, True)
-                inform = player.inform(self.struct, True)
+            for miner in prev_miners:
+                publish = miner.publish(self.struct, True)
+                inform = miner.inform(self.struct, True)
                 if publish:
-                    updated_players = set(self.players)
+                    updated_miners = set(self.miners)
                     publishable |= publish
                 if inform:
-                    for i_player in inform:
-                        updated_players.add(i_player)
-                        if i_player not in informable:
-                            informable[i_player] = set()
-                        informable[i_player] |= inform[i_player]
+                    for i_miner in inform:
+                        updated_miners.add(i_miner)
+                        if i_miner not in informable:
+                            informable[i_miner] = set()
+                        informable[i_miner] |= inform[i_miner]
             
             for block in publishable:
                 self.struct.add_block(block)
                 self.hidden_blocks.remove(block)
             
-            for player_name in informable:
-                for block in informable[player]:
-                    player = next((x for x in self.players if x.name == player_name), None)
-                    player.add_known_block(block)
+            for miner_name in informable:
+                for block in informable[miner_name]:
+                    miner = next((x for x in self.miners if x.name == miner_name), None)
+                    miner.add_known_block(block)
 
     def simulate(self):
 
         &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
         on the instatiation of the simulation object and calculates the payoff
-        that each player receives and saves this data.&#34;&#34;&#34;
+        that each miner receives and saves this data.&#34;&#34;&#34;
 
         for _ in tqdm(range(self.step_nr)):
             self.step()
 
         self.uncover_on_end()
 
-        # while len(self.struct.deep_blocks) &gt; 1:
-        #     self.struct.depth -= 1
-        #     new_blocks = set()
-
-        #     for block in self.struct.deep_blocks:
-        #         new_blocks.add(block.parent)
-
-        #     self.struct.deep_blocks = new_blocks
-        
-        # last_block = self.struct.deep_blocks.pop()
-        # self.struct.deep_blocks.add(last_block)
-        # payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
-
-        # for player in self.players:
-        #     self.results[player.name] = dict()
-        #     self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
-        #     self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
-
     def print_results(self):
 
         &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
-        the block number and the payoff for each of the players.&#34;&#34;&#34;
+        the block number and the payoff for each of the miners.&#34;&#34;&#34;
 
         tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
         tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
         print(&#34;==========&#34;)
-        for player in self.players:
-            print(&#34;Player: {}&#34;.format(player.name))
-            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+        for miner in self.miners:
+            print(&#34;Miner: {}&#34;.format(miner.name))
+            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[miner.name], self.h[miner.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;block_number&#34;], self.struct.partial_payoff[miner.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;payoff&#34;], self.struct.partial_payoff[miner.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
             print(&#34;==========&#34;)
 
     # def print_struct(self):
 
     #     &#34;&#34;&#34;Displays a representation of the data structure of the conducted
-    #     simulation in the terminal using the library ``format_tree``.&#34;&#34;&#34;
+    #     simulation in the terminal using the library `format_tree`.&#34;&#34;&#34;
 
     #     print(format_tree(self.struct.base, lambda x: &#34;{}-{}&#34;.format(x.owner.name, x.tstamp) if not x.owner is None else &#39;None&#39;, lambda x: x.children))</code></pre>
 </details>
@@ -390,8 +369,8 @@ class Simulation:
         
         parent : blocksim.simulation.Block
             parent block for the new block
-        owner : blocksim.players.Player
-            player that created the block
+        owner : blocksim.miners.Miner
+            miner that created the block
         tstamp : int
             timestamp of moment in which the block was published&#34;&#34;&#34;
         
@@ -417,7 +396,7 @@ class Simulation:
 
     def set_tstamp(self, tstamp):
 
-        &#34;&#34;&#34;Set timestamp of revelation for current block.
+        &#34;&#34;&#34;Set timestamp of publication for current block.
         
         Parameters
         ----------
@@ -449,8 +428,8 @@ class Simulation:
 <dl>
 <dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>parent block for the new block</dd>
-<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
-<dd>player that created the block</dd>
+<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.miners.Miner" href="miners.html#blocksim.miners.Miner"><code>Miner</code></a></dt>
+<dd>miner that created the block</dd>
 <dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
 <dd>timestamp of moment in which the block was published</dd>
 </dl></section>
@@ -463,8 +442,8 @@ class Simulation:
     
     parent : blocksim.simulation.Block
         parent block for the new block
-    owner : blocksim.players.Player
-        player that created the block
+    owner : blocksim.miners.Miner
+        miner that created the block
     tstamp : int
         timestamp of moment in which the block was published&#34;&#34;&#34;
     
@@ -534,7 +513,7 @@ class Simulation:
 <span>def <span class="ident">set_tstamp</span></span>(<span>self, tstamp)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Set timestamp of revelation for current block.</p>
+<section class="desc"><p>Set timestamp of publication for current block.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>tstamp</code></strong> :&ensp;<code>int</code></dt>
@@ -544,7 +523,7 @@ class Simulation:
 <summary>Source code</summary>
 <pre><code class="python">def set_tstamp(self, tstamp):
 
-    &#34;&#34;&#34;Set timestamp of revelation for current block.
+    &#34;&#34;&#34;Set timestamp of publication for current block.
     
     Parameters
     ----------
@@ -568,16 +547,16 @@ class Simulation:
 
     &#34;&#34;&#34;Generate a simulation object to run simulations using certain parameters.&#34;&#34;&#34;
 
-    def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
+    def __init__(self, miners, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
         &#34;&#34;&#34;Parameters
         ----------
         
-        players : list
-            list of players to participate in the simulation
+        miners : list
+            list of miners to participate in the simulation
         h : dict
-            dictionary of pairs {player name: hash power value}. The greater
-            the hash power value the likelier it is for the player to get
+            dictionary of pairs {miner name: hash power value}. The greater
+            the hash power value the likelier it is for the miner to get
             assigned the next new block
         step_nr : int
             number of blocks to generate before the simulation ends
@@ -587,11 +566,11 @@ class Simulation:
         payoff : function
             payoff function for simulation blocks&#34;&#34;&#34;
 
-        self.players = players
+        self.miners = miners
         self.h = h
         self.step_nr = step_nr
         self.tot_h = reduce(lambda x, y: x + y, h.values())
-        self.struct = Structure(payoff, players, safe_dist)
+        self.struct = Structure(payoff, miners, safe_dist)
         self.hidden_blocks = []
 
     def add_hidden_block(self, owner, parent):
@@ -601,7 +580,7 @@ class Simulation:
         Parameters
         ----------
         
-        owner : blocksim.players.Player
+        owner : blocksim.miners.Miner
             owner of the new block that is being created
         parent : blocksim.simulation.Block
             parent block for the new block&#34;&#34;&#34;
@@ -610,68 +589,68 @@ class Simulation:
         self.hidden_blocks.append(new_block)
         owner.add_hidden_block(new_block)
 
-    def check_publishable(self, player):
+    def check_publishable(self, miner):
 
         &#34;&#34;&#34;Spreads information based on state changes of the data structure and
-        communication between players. Firstly, the owner of the new block can choose
+        communication between miners. Firstly, the owner of the new block can choose
         to reveal any of their hidden blocks or to communicate any of them to other
-        players. After this, any player which has gotten new information through
+        miners. After this, any miner which has gotten new information through
         the reveal of a new block or through a message received can choose to
-        reveal a block or communicate blocks to other players. This iterative
-        process continues until there is a cycle in which no players have gotten
+        reveal a block or communicate blocks to other miners. This iterative
+        process continues until there is a cycle in which no miners have gotten
         new information.
         
         Parameters
         ----------
         
-        player : blocksim.players.Player
+        miner : blocksim.miners.Miner
             owner of the block generated in the current cycle&#34;&#34;&#34;
 
-        updated_players = {player}
-        while updated_players:
-            prev_players = updated_players
-            updated_players = set()
+        updated_miners = {miner}
+        while updated_miners:
+            prev_miners = updated_miners
+            updated_miners = set()
             publishable = set()
             informable = dict()
-            for player in prev_players:
-                publish = player.publish(self.struct)
-                inform = player.inform(self.struct)
+            for miner in prev_miners:
+                publish = miner.publish(self.struct)
+                inform = miner.inform(self.struct)
                 if publish:
-                    updated_players = set(self.players)
+                    updated_miners = set(self.miners)
                     publishable |= publish
                 if inform:
-                    for i_player in inform:
-                        updated_players.add(i_player)
-                        if i_player not in informable:
-                            informable[i_player] = set()
-                        informable[i_player] |= inform[i_player]
+                    for i_miner in inform:
+                        updated_miners.add(i_miner)
+                        if i_miner not in informable:
+                            informable[i_miner] = set()
+                        informable[i_miner] |= inform[i_miner]
             
             for block in publishable:
                 self.struct.add_block(block)
                 self.hidden_blocks.remove(block)
             
-            for player_name in informable:
-                for block in informable[player]:
-                    player = next((x for x in self.players if x.name == player_name), None)
-                    player.add_known_block(block)
+            for miner_name in informable:
+                for block in informable[miner_name]:
+                    miner = next((x for x in self.miners if x.name == miner_name), None)
+                    miner.add_known_block(block)
 
     def step(self):
 
         &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
-        chooses one player randomly, with the probability of selecting a
-        player being determined by their hash power value divided by
-        the total hash power value of all players. After this a block
-        is created with said player as its owner. Lastly, we call the
+        chooses one miner randomly, with the probability of selecting a
+        miner being determined by their hash power value divided by
+        the total hash power value of all miners. After this a block
+        is created with said miner as its owner. Lastly, we call the
         `blocksim.simulation.Simulation.check_publishable` method, which
-        spreads information between the different players.&#34;&#34;&#34;
+        spreads information between the different miners.&#34;&#34;&#34;
 
-        rand_player = randint(1, self.tot_h)
-        for player in self.players:
-            if rand_player &lt;= self.h[player.name]:
-                owner = player
+        rand_miner = randint(1, self.tot_h)
+        for miner in self.miners:
+            if rand_miner &lt;= self.h[miner.name]:
+                owner = miner
                 break
             else:
-                rand_player -= self.h[player.name]
+                rand_miner -= self.h[miner.name]
         parent = owner.strat(self.struct)
         self.add_hidden_block(owner, parent)
         self.check_publishable(owner)
@@ -680,95 +659,77 @@ class Simulation:
 
         &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
         this method is called at the end of the process, to make sure that
-        every player can disclose their hidden blocks at the end of the
+        every miner can disclose their hidden blocks at the end of the
         simulation, for them to count towards their payoff.&#34;&#34;&#34;
 
-        updated_players = set(self.players)
-        while updated_players:
-            prev_players = updated_players
-            updated_players = set()
+        updated_miners = set(self.miners)
+        while updated_miners:
+            prev_miners = updated_miners
+            updated_miners = set()
             publishable = set()
             informable = dict()
-            for player in prev_players:
-                publish = player.publish(self.struct, True)
-                inform = player.inform(self.struct, True)
+            for miner in prev_miners:
+                publish = miner.publish(self.struct, True)
+                inform = miner.inform(self.struct, True)
                 if publish:
-                    updated_players = set(self.players)
+                    updated_miners = set(self.miners)
                     publishable |= publish
                 if inform:
-                    for i_player in inform:
-                        updated_players.add(i_player)
-                        if i_player not in informable:
-                            informable[i_player] = set()
-                        informable[i_player] |= inform[i_player]
+                    for i_miner in inform:
+                        updated_miners.add(i_miner)
+                        if i_miner not in informable:
+                            informable[i_miner] = set()
+                        informable[i_miner] |= inform[i_miner]
             
             for block in publishable:
                 self.struct.add_block(block)
                 self.hidden_blocks.remove(block)
             
-            for player_name in informable:
-                for block in informable[player]:
-                    player = next((x for x in self.players if x.name == player_name), None)
-                    player.add_known_block(block)
+            for miner_name in informable:
+                for block in informable[miner_name]:
+                    miner = next((x for x in self.miners if x.name == miner_name), None)
+                    miner.add_known_block(block)
 
     def simulate(self):
 
         &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
         on the instatiation of the simulation object and calculates the payoff
-        that each player receives and saves this data.&#34;&#34;&#34;
+        that each miner receives and saves this data.&#34;&#34;&#34;
 
         for _ in tqdm(range(self.step_nr)):
             self.step()
 
         self.uncover_on_end()
 
-        # while len(self.struct.deep_blocks) &gt; 1:
-        #     self.struct.depth -= 1
-        #     new_blocks = set()
-
-        #     for block in self.struct.deep_blocks:
-        #         new_blocks.add(block.parent)
-
-        #     self.struct.deep_blocks = new_blocks
-        
-        # last_block = self.struct.deep_blocks.pop()
-        # self.struct.deep_blocks.add(last_block)
-        # payoff_dict = self.struct.payoff(last_block, self.struct.base, self.struct.base)
-
-        # for player in self.players:
-        #     self.results[player.name] = dict()
-        #     self.results[player.name][&#34;block_number&#34;] = payoff_dict[player.name][&#34;block_number&#34;] if player.name in payoff_dict else 0
-        #     self.results[player.name][&#34;payoff&#34;] = payoff_dict[player.name][&#34;payoff&#34;] if player.name in payoff_dict else 0
-
     def print_results(self):
 
         &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
-        the block number and the payoff for each of the players.&#34;&#34;&#34;
+        the block number and the payoff for each of the miners.&#34;&#34;&#34;
 
         tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
         tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
         print(&#34;==========&#34;)
-        for player in self.players:
-            print(&#34;Player: {}&#34;.format(player.name))
-            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+        for miner in self.miners:
+            print(&#34;Miner: {}&#34;.format(miner.name))
+            print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[miner.name], self.h[miner.name] * 100 / self.tot_h))
+            print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;block_number&#34;], self.struct.partial_payoff[miner.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+            print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;payoff&#34;], self.struct.partial_payoff[miner.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
             print(&#34;==========&#34;)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Simulation.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, players, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7f385dbb4158&gt;)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, miners, h, step_nr, safe_dist=0, payoff=&lt;function alpha_beta_step_payoff.&lt;locals&gt;.ab_payoff at 0x7faa453d47b8&gt;)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>players</code></strong> :&ensp;<code>list</code></dt>
-<dd>list of players to participate in the simulation</dd>
+<dt><strong><code>miners</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of miners to participate in the simulation</dd>
 <dt><strong><code>h</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary of pairs {player name: hash power value}. The greater
-the hash power value the likelier it is for the player to get
+<dd>dictionary of pairs {miner name: hash power value}. The greater
+the hash power value the likelier it is for the miner to get
 assigned the next new block</dd>
 <dt><strong><code>step_nr</code></strong> :&ensp;<code>int</code></dt>
 <dd>number of blocks to generate before the simulation ends</dd>
@@ -780,16 +741,16 @@ block in the blockchain for its payoff to be given out</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def __init__(self, players, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
+<pre><code class="python">def __init__(self, miners, h, step_nr, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1)):
 
     &#34;&#34;&#34;Parameters
     ----------
     
-    players : list
-        list of players to participate in the simulation
+    miners : list
+        list of miners to participate in the simulation
     h : dict
-        dictionary of pairs {player name: hash power value}. The greater
-        the hash power value the likelier it is for the player to get
+        dictionary of pairs {miner name: hash power value}. The greater
+        the hash power value the likelier it is for the miner to get
         assigned the next new block
     step_nr : int
         number of blocks to generate before the simulation ends
@@ -799,11 +760,11 @@ block in the blockchain for its payoff to be given out</dd>
     payoff : function
         payoff function for simulation blocks&#34;&#34;&#34;
 
-    self.players = players
+    self.miners = miners
     self.h = h
     self.step_nr = step_nr
     self.tot_h = reduce(lambda x, y: x + y, h.values())
-    self.struct = Structure(payoff, players, safe_dist)
+    self.struct = Structure(payoff, miners, safe_dist)
     self.hidden_blocks = []</code></pre>
 </details>
 </dd>
@@ -814,7 +775,7 @@ block in the blockchain for its payoff to be given out</dd>
 <section class="desc"><p>Generate a hidden block and inform the owner of its creation.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
+<dt><strong><code>owner</code></strong> :&ensp;<a title="blocksim.miners.Miner" href="miners.html#blocksim.miners.Miner"><code>Miner</code></a></dt>
 <dd>owner of the new block that is being created</dd>
 <dt><strong><code>parent</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="#blocksim.simulation.Block"><code>Block</code></a></dt>
 <dd>parent block for the new block</dd>
@@ -828,7 +789,7 @@ block in the blockchain for its payoff to be given out</dd>
     Parameters
     ----------
     
-    owner : blocksim.players.Player
+    owner : blocksim.miners.Miner
         owner of the new block that is being created
     parent : blocksim.simulation.Block
         parent block for the new block&#34;&#34;&#34;
@@ -839,68 +800,68 @@ block in the blockchain for its payoff to be given out</dd>
 </details>
 </dd>
 <dt id="blocksim.simulation.Simulation.check_publishable"><code class="name flex">
-<span>def <span class="ident">check_publishable</span></span>(<span>self, player)</span>
+<span>def <span class="ident">check_publishable</span></span>(<span>self, miner)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Spreads information based on state changes of the data structure and
-communication between players. Firstly, the owner of the new block can choose
+communication between miners. Firstly, the owner of the new block can choose
 to reveal any of their hidden blocks or to communicate any of them to other
-players. After this, any player which has gotten new information through
+miners. After this, any miner which has gotten new information through
 the reveal of a new block or through a message received can choose to
-reveal a block or communicate blocks to other players. This iterative
-process continues until there is a cycle in which no players have gotten
+reveal a block or communicate blocks to other miners. This iterative
+process continues until there is a cycle in which no miners have gotten
 new information.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>player</code></strong> :&ensp;<a title="blocksim.players.Player" href="players.html#blocksim.players.Player"><code>Player</code></a></dt>
+<dt><strong><code>miner</code></strong> :&ensp;<a title="blocksim.miners.Miner" href="miners.html#blocksim.miners.Miner"><code>Miner</code></a></dt>
 <dd>owner of the block generated in the current cycle</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def check_publishable(self, player):
+<pre><code class="python">def check_publishable(self, miner):
 
     &#34;&#34;&#34;Spreads information based on state changes of the data structure and
-    communication between players. Firstly, the owner of the new block can choose
+    communication between miners. Firstly, the owner of the new block can choose
     to reveal any of their hidden blocks or to communicate any of them to other
-    players. After this, any player which has gotten new information through
+    miners. After this, any miner which has gotten new information through
     the reveal of a new block or through a message received can choose to
-    reveal a block or communicate blocks to other players. This iterative
-    process continues until there is a cycle in which no players have gotten
+    reveal a block or communicate blocks to other miners. This iterative
+    process continues until there is a cycle in which no miners have gotten
     new information.
     
     Parameters
     ----------
     
-    player : blocksim.players.Player
+    miner : blocksim.miners.Miner
         owner of the block generated in the current cycle&#34;&#34;&#34;
 
-    updated_players = {player}
-    while updated_players:
-        prev_players = updated_players
-        updated_players = set()
+    updated_miners = {miner}
+    while updated_miners:
+        prev_miners = updated_miners
+        updated_miners = set()
         publishable = set()
         informable = dict()
-        for player in prev_players:
-            publish = player.publish(self.struct)
-            inform = player.inform(self.struct)
+        for miner in prev_miners:
+            publish = miner.publish(self.struct)
+            inform = miner.inform(self.struct)
             if publish:
-                updated_players = set(self.players)
+                updated_miners = set(self.miners)
                 publishable |= publish
             if inform:
-                for i_player in inform:
-                    updated_players.add(i_player)
-                    if i_player not in informable:
-                        informable[i_player] = set()
-                    informable[i_player] |= inform[i_player]
+                for i_miner in inform:
+                    updated_miners.add(i_miner)
+                    if i_miner not in informable:
+                        informable[i_miner] = set()
+                    informable[i_miner] |= inform[i_miner]
         
         for block in publishable:
             self.struct.add_block(block)
             self.hidden_blocks.remove(block)
         
-        for player_name in informable:
-            for block in informable[player]:
-                player = next((x for x in self.players if x.name == player_name), None)
-                player.add_known_block(block)</code></pre>
+        for miner_name in informable:
+            for block in informable[miner_name]:
+                miner = next((x for x in self.miners if x.name == miner_name), None)
+                miner.add_known_block(block)</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Simulation.print_results"><code class="name flex">
@@ -908,23 +869,23 @@ new information.</p>
 </code></dt>
 <dd>
 <section class="desc"><p>Prints the results of the simulation, displaying the hash power value,
-the block number and the payoff for each of the players.</p></section>
+the block number and the payoff for each of the miners.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def print_results(self):
 
     &#34;&#34;&#34;Prints the results of the simulation, displaying the hash power value,
-    the block number and the payoff for each of the players.&#34;&#34;&#34;
+    the block number and the payoff for each of the miners.&#34;&#34;&#34;
 
     tot_blocks = reduce(lambda x, y: x + y, map(lambda x: x[&#34;block_number&#34;], self.struct.partial_payoff.values()))
     tot_payoff = reduce(lambda x, y: x + y, map(lambda x: x[&#34;payoff&#34;], self.struct.partial_payoff.values()))
 
     print(&#34;==========&#34;)
-    for player in self.players:
-        print(&#34;Player: {}&#34;.format(player.name))
-        print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[player.name], self.h[player.name] * 100 / self.tot_h))
-        print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;block_number&#34;], self.struct.partial_payoff[player.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
-        print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[player.name][&#34;payoff&#34;], self.struct.partial_payoff[player.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
+    for miner in self.miners:
+        print(&#34;Miner: {}&#34;.format(miner.name))
+        print(&#34;Hash Power: {} ({:.2f}%)&#34;.format(self.h[miner.name], self.h[miner.name] * 100 / self.tot_h))
+        print(&#34;Block Number: {} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;block_number&#34;], self.struct.partial_payoff[miner.name][&#34;block_number&#34;] * 100 / tot_blocks if tot_blocks else 0))
+        print(&#34;Payoff: {:.2f} ({:.2f}%)&#34;.format(self.struct.partial_payoff[miner.name][&#34;payoff&#34;], self.struct.partial_payoff[miner.name][&#34;payoff&#34;] * 100 / tot_payoff if tot_payoff else 0))
         print(&#34;==========&#34;)</code></pre>
 </details>
 </dd>
@@ -934,14 +895,14 @@ the block number and the payoff for each of the players.</p></section>
 <dd>
 <section class="desc"><p>Conducts the simulation itself. Runs the number of steps specified
 on the instatiation of the simulation object and calculates the payoff
-that each player receives and saves this data.</p></section>
+that each miner receives and saves this data.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def simulate(self):
 
     &#34;&#34;&#34;Conducts the simulation itself. Runs the number of steps specified
     on the instatiation of the simulation object and calculates the payoff
-    that each player receives and saves this data.&#34;&#34;&#34;
+    that each miner receives and saves this data.&#34;&#34;&#34;
 
     for _ in tqdm(range(self.step_nr)):
         self.step()
@@ -954,31 +915,31 @@ that each player receives and saves this data.</p></section>
 </code></dt>
 <dd>
 <section class="desc"><p>Simulates one step of the experiment. Firstly, the algorithm
-chooses one player randomly, with the probability of selecting a
-player being determined by their hash power value divided by
-the total hash power value of all players. After this a block
-is created with said player as its owner. Lastly, we call the
+chooses one miner randomly, with the probability of selecting a
+miner being determined by their hash power value divided by
+the total hash power value of all miners. After this a block
+is created with said miner as its owner. Lastly, we call the
 <a title="blocksim.simulation.Simulation.check_publishable" href="#blocksim.simulation.Simulation.check_publishable"><code>Simulation.check_publishable()</code></a> method, which
-spreads information between the different players.</p></section>
+spreads information between the different miners.</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def step(self):
 
     &#34;&#34;&#34;Simulates one step of the experiment. Firstly, the algorithm
-    chooses one player randomly, with the probability of selecting a
-    player being determined by their hash power value divided by
-    the total hash power value of all players. After this a block
-    is created with said player as its owner. Lastly, we call the
+    chooses one miner randomly, with the probability of selecting a
+    miner being determined by their hash power value divided by
+    the total hash power value of all miners. After this a block
+    is created with said miner as its owner. Lastly, we call the
     `blocksim.simulation.Simulation.check_publishable` method, which
-    spreads information between the different players.&#34;&#34;&#34;
+    spreads information between the different miners.&#34;&#34;&#34;
 
-    rand_player = randint(1, self.tot_h)
-    for player in self.players:
-        if rand_player &lt;= self.h[player.name]:
-            owner = player
+    rand_miner = randint(1, self.tot_h)
+    for miner in self.miners:
+        if rand_miner &lt;= self.h[miner.name]:
+            owner = miner
             break
         else:
-            rand_player -= self.h[player.name]
+            rand_miner -= self.h[miner.name]
     parent = owner.strat(self.struct)
     self.add_hidden_block(owner, parent)
     self.check_publishable(owner)</code></pre>
@@ -990,7 +951,7 @@ spreads information between the different players.</p></section>
 <dd>
 <section class="desc"><p>Considering that the simulation has a finite number on steps,
 this method is called at the end of the process, to make sure that
-every player can disclose their hidden blocks at the end of the
+every miner can disclose their hidden blocks at the end of the
 simulation, for them to count towards their payoff.</p></section>
 <details class="source">
 <summary>Source code</summary>
@@ -998,36 +959,36 @@ simulation, for them to count towards their payoff.</p></section>
 
     &#34;&#34;&#34;Considering that the simulation has a finite number on steps,
     this method is called at the end of the process, to make sure that
-    every player can disclose their hidden blocks at the end of the
+    every miner can disclose their hidden blocks at the end of the
     simulation, for them to count towards their payoff.&#34;&#34;&#34;
 
-    updated_players = set(self.players)
-    while updated_players:
-        prev_players = updated_players
-        updated_players = set()
+    updated_miners = set(self.miners)
+    while updated_miners:
+        prev_miners = updated_miners
+        updated_miners = set()
         publishable = set()
         informable = dict()
-        for player in prev_players:
-            publish = player.publish(self.struct, True)
-            inform = player.inform(self.struct, True)
+        for miner in prev_miners:
+            publish = miner.publish(self.struct, True)
+            inform = miner.inform(self.struct, True)
             if publish:
-                updated_players = set(self.players)
+                updated_miners = set(self.miners)
                 publishable |= publish
             if inform:
-                for i_player in inform:
-                    updated_players.add(i_player)
-                    if i_player not in informable:
-                        informable[i_player] = set()
-                    informable[i_player] |= inform[i_player]
+                for i_miner in inform:
+                    updated_miners.add(i_miner)
+                    if i_miner not in informable:
+                        informable[i_miner] = set()
+                    informable[i_miner] |= inform[i_miner]
         
         for block in publishable:
             self.struct.add_block(block)
             self.hidden_blocks.remove(block)
         
-        for player_name in informable:
-            for block in informable[player]:
-                player = next((x for x in self.players if x.name == player_name), None)
-                player.add_known_block(block)</code></pre>
+        for miner_name in informable:
+            for block in informable[miner_name]:
+                miner = next((x for x in self.miners if x.name == miner_name), None)
+                miner.add_known_block(block)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1043,15 +1004,15 @@ simulation, for them to count towards their payoff.</p></section>
 
     &#34;&#34;&#34;Generate data structure for conducting simulation.&#34;&#34;&#34;
 
-    def __init__(self, payoff, players, safe_dist):
+    def __init__(self, payoff, miners, safe_dist):
 
         &#34;&#34;&#34;Parameters
         ----------
         
         payoff : function
             payoff function for simulation
-        players : list
-            list of players participating to keep track of their payoffs
+        miners : list
+            list of miners participating to keep track of their payoffs
         safe_dist : int
             number indicating how many blocks have to be ahead of certain block in the
             blockchain for its payoff to be given out&#34;&#34;&#34;
@@ -1063,7 +1024,7 @@ simulation, for them to count towards their payoff.</p></section>
         self.last_tstamp = 0
         self.payoff = payoff
         self.safe_dist = safe_dist
-        self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}
+        self.partial_payoff = {miner.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for miner in miners}
 
     def add_block(self, block):
 
@@ -1096,39 +1057,39 @@ simulation, for them to count towards their payoff.</p></section>
                 
                 new_payoffs = self.payoff(first_paid, last_paid, self.base)
 
-                for player_name in new_payoffs:
-                    self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
-                    self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
+                for miner_name in new_payoffs:
+                    self.partial_payoff[miner_name][&#39;block_number&#39;] += new_payoffs[miner_name][&#39;block_number&#39;]
+                    self.partial_payoff[miner_name][&#39;payoff&#39;] += new_payoffs[miner_name][&#39;payoff&#39;]
 
         self.last_tstamp += 1</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="blocksim.simulation.Structure.__init__"><code class="name flex">
-<span>def <span class="ident">__init__</span></span>(<span>self, payoff, players, safe_dist)</span>
+<span>def <span class="ident">__init__</span></span>(<span>self, payoff, miners, safe_dist)</span>
 </code></dt>
 <dd>
 <section class="desc"><h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>payoff</code></strong> :&ensp;<code>function</code></dt>
 <dd>payoff function for simulation</dd>
-<dt><strong><code>players</code></strong> :&ensp;<code>list</code></dt>
-<dd>list of players participating to keep track of their payoffs</dd>
+<dt><strong><code>miners</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of miners participating to keep track of their payoffs</dd>
 <dt><strong><code>safe_dist</code></strong> :&ensp;<code>int</code></dt>
 <dd>number indicating how many blocks have to be ahead of certain block in the
 blockchain for its payoff to be given out</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def __init__(self, payoff, players, safe_dist):
+<pre><code class="python">def __init__(self, payoff, miners, safe_dist):
 
     &#34;&#34;&#34;Parameters
     ----------
     
     payoff : function
         payoff function for simulation
-    players : list
-        list of players participating to keep track of their payoffs
+    miners : list
+        list of miners participating to keep track of their payoffs
     safe_dist : int
         number indicating how many blocks have to be ahead of certain block in the
         blockchain for its payoff to be given out&#34;&#34;&#34;
@@ -1140,7 +1101,7 @@ blockchain for its payoff to be given out</dd>
     self.last_tstamp = 0
     self.payoff = payoff
     self.safe_dist = safe_dist
-    self.partial_payoff = {player.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for player in players}</code></pre>
+    self.partial_payoff = {miner.name: {&#39;block_number&#39;: 0, &#39;payoff&#39;: 0} for miner in miners}</code></pre>
 </details>
 </dd>
 <dt id="blocksim.simulation.Structure.add_block"><code class="name flex">
@@ -1186,9 +1147,9 @@ blockchain for its payoff to be given out</dd>
             
             new_payoffs = self.payoff(first_paid, last_paid, self.base)
 
-            for player_name in new_payoffs:
-                self.partial_payoff[player_name][&#39;block_number&#39;] += new_payoffs[player_name][&#39;block_number&#39;]
-                self.partial_payoff[player_name][&#39;payoff&#39;] += new_payoffs[player_name][&#39;payoff&#39;]
+            for miner_name in new_payoffs:
+                self.partial_payoff[miner_name][&#39;block_number&#39;] += new_payoffs[miner_name][&#39;block_number&#39;]
+                self.partial_payoff[miner_name][&#39;payoff&#39;] += new_payoffs[miner_name][&#39;payoff&#39;]
 
     self.last_tstamp += 1</code></pre>
 </details>

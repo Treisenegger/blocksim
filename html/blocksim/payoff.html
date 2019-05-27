@@ -22,15 +22,15 @@ a starting block and an ending block and returns the payoff …" />
 </header>
 <section id="section-intro">
 <p>Standard payoff functions for conducting the experiments. Each function receives
-a starting block and an ending block and returns the payoff corresponding to each player
+a starting block and an ending block and returns the payoff corresponding to each miner
 for the branch between both blocks. The <code>start_block</code> is the deepest block in the
 branch and the <code>end_block</code> is the shallowest.</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;Standard payoff functions for conducting the experiments. Each function receives
-a starting block and an ending block and returns the payoff corresponding to each player
-for the branch between both blocks. The ``start_block`` is the deepest block in the
-branch and the ``end_block`` is the shallowest.&#34;&#34;&#34;
+a starting block and an ending block and returns the payoff corresponding to each miner
+for the branch between both blocks. The `start_block` is the deepest block in the
+branch and the `end_block` is the shallowest.&#34;&#34;&#34;
 
 def constant_payoff(start_block, end_block, base):
 
@@ -54,7 +54,7 @@ def constant_payoff(start_block, end_block, base):
     
     payoff_dict : dict
         dictionary that contains the information regarding payoff and number
-        of blocks owned by each player in the branch&#34;&#34;&#34;
+        of blocks owned by each miner in the branch&#34;&#34;&#34;
 
     payoff_dict = {}
     
@@ -116,7 +116,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
         
         payoff_dict : dict
             dictionary that contains the information regarding payoff and number
-            of blocks owned by each player in the branch&#34;&#34;&#34;
+            of blocks owned by each miner in the branch&#34;&#34;&#34;
 
         payoff_dict = {}
         
@@ -212,7 +212,7 @@ purposes</dd>
         
         payoff_dict : dict
             dictionary that contains the information regarding payoff and number
-            of blocks owned by each player in the branch&#34;&#34;&#34;
+            of blocks owned by each miner in the branch&#34;&#34;&#34;
 
         payoff_dict = {}
         
@@ -250,7 +250,7 @@ are not on the same branch as an ending condition for the calculation</dd>
 <dl>
 <dt><strong><code>payoff_dict</code></strong> :&ensp;<code>dict</code></dt>
 <dd>dictionary that contains the information regarding payoff and number
-of blocks owned by each player in the branch</dd>
+of blocks owned by each miner in the branch</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
@@ -276,7 +276,7 @@ of blocks owned by each player in the branch</dd>
     
     payoff_dict : dict
         dictionary that contains the information regarding payoff and number
-        of blocks owned by each player in the branch&#34;&#34;&#34;
+        of blocks owned by each miner in the branch&#34;&#34;&#34;
 
     payoff_dict = {}
     
