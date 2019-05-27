@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.5.3" />
+<title>blocksim.miners API documentation</title>
+<meta name="description" content="Standard miner strategies for conducting the experiments. Each miner is generated
+with a name that serves as its identificator. Also, each miner has …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.name small{font-weight:normal}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title"><code>blocksim.miners</code> module</h1>
+</header>
+<section id="section-intro">
+<p>Standard miner strategies for conducting the experiments. Each miner is generated
+with a name that serves as its identificator. Also, each miner has to have 6 methods
+called <code>add_hidden_block</code>, which saves a new hidden block created by the miner,
+<code>delete_hidden_block</code>, which deletes the reference to a hidden block created by the
+miner after revealing it, <code>add_known_block</code>, which saves a hidden block created by
+another miner, <code>strat</code>, which chooses a block to mine on top of, <code>publish</code>,
+which chooses blocks to reveal, and <code>inform</code>, which chooses blocks to communicate
+to other miners.</p>
+<p>To create a new miner you need to create a class that inherits from the <a title="blocksim.miners.Miner" href="#blocksim.miners.Miner"><code>Miner</code></a>
+class and overrides the methods you want to modify. Miner is a class model
+describing the different elements a miner has to possess to function with the
+implemented simulation. It implements the default strategy choosing randomly
+from the deepest blocks when there is a tie.</p>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;Standard miner strategies for conducting the experiments. Each miner is generated
+with a name that serves as its identificator. Also, each miner has to have 6 methods
+called `add_hidden_block`, which saves a new hidden block created by the miner,
+`delete_hidden_block`, which deletes the reference to a hidden block created by the
+miner after revealing it, `add_known_block`, which saves a hidden block created by
+another miner, `strat`, which chooses a block to mine on top of, `publish`,
+which chooses blocks to reveal, and `inform`, which chooses blocks to communicate
+to other miners.
+
+To create a new miner you need to create a class that inherits from the `Miner`
+class and overrides the methods you want to modify. Miner is a class model
+describing the different elements a miner has to possess to function with the
+implemented simulation. It implements the default strategy choosing randomly
+from the deepest blocks when there is a tie.&#34;&#34;&#34;
+
+from random import sample
+
+from .simulation import Block
+
+class Miner:
+
+    &#34;&#34;&#34;Generate miner that uses the default strategy but when there is a tie in
+    max depth the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ---------
+        
+        name : string
+            identifier for the miner. When creating a new instance of a
+            miner the method has to receive a name which will serve as
+            its identifier. This parameter has to be saved as an attribute
+            called name.&#34;&#34;&#34;
+
+        self.name = name
+        self.hidden_blocks = []
+        self.known_blocks = []
+
+    def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when the miner finds a new block for the
+        structure. Every block is created as hidden by default and can be
+        revealed instantly or at some point after that. The miner has to
+        save a reference to each hidden block it has created so that it can
+        reveal them in the future.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            new block that has just been created with the miner as its owner.
+            A reference to this block has to be saved for it to be published
+            later on.&#34;&#34;&#34;
+
+        self.hidden_blocks.append(block)
+
+    def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when a miner chooses to publish a block so
+        that it can delete its reference from its hidden blocks.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+        self.hidden_blocks.remove(block)
+
+    def add_known_block(self, block):
+
+        &#34;&#34;&#34;This method is called when another miner informs the current miner of
+        a hidden block that it has found so that the current miner is able to mine
+        on top of it without it being revealed yet.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            hidden block that has been shown to the current miner.&#34;&#34;&#34;
+
+        self.known_blocks.append(block)
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;This method is called when a miner has found a new block for the structure
+        for it to choose its parent block. In other words, the miner has to choose
+        on top of which block it will place its next found block. This method chooses
+        a random block from the deepest blocks in the structure.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            block on top of which the current miner will place its next found block&#34;&#34;&#34;
+
+        return sample(struct.deep_blocks, 1)[0]
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+        the miner to return the hidden blocks that it wants to publish in the form of
+        a set. This miner publishes each block instantly.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the state
+            or because the simulation is ending.
+            
+        Results
+        -------
+        
+        blocks : set
+            set containing the blocks that are to be published.&#34;&#34;&#34;
+
+        prev_blocks = self.hidden_blocks
+        self.hidden_blocks = []
+        return set(prev_blocks)
+
+    def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed
+        and expects the miner to return a dictionary with the pairs
+        ``miner_name: set()``, where the set contains the hidden blocks
+        to be informed to the miner with name ``miner_name``. This miner
+        doesn&#39;t use a communication strategy and it doesn&#39;t inform others
+        of its blocks.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the
+            state or because the simulation is ending.
+            
+        Results
+        -------
+        
+        inform : dict
+            dictionary with the pairs ``miner_name: set()``, where the set
+            contains the hidden blocks to be informed to the miner with name
+            ``miner_name``.&#34;&#34;&#34;
+
+        return dict()
+
+
+class DefaultMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the default strategy. When there is a tie in
+    max depth, the algorithm chooses the branch that gives the current miner
+    the max amount of payoff.&#34;&#34;&#34;
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+        structure that belongs to the branch that maximizes the current miner&#39;s
+        payoff.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        next_blocks = struct.deep_blocks.copy()
+
+        if len(next_blocks) &gt; 1:
+            while len(next_blocks) &gt; 1:
+                old_blocks = next_blocks
+                next_blocks = set()
+                for block in old_blocks:
+                    next_blocks.add(block.parent)
+
+            common_block = next_blocks.pop()
+            block_payoff = {block: struct.payoff(block, common_block, struct.base)
+                for block in struct.deep_blocks}
+
+            for block in block_payoff:
+                if self.name not in block_payoff[block]:
+                    block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
+            max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
+            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+                block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+            sel_block = max_payoff_blocks.pop()
+        else:
+            sel_block = next_blocks.pop()
+
+        return sel_block
+
+
+class SelfishMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the selfish strategy. Once the miner discovers
+    a new block, they don&#39;t reveal it unless another branch catches up to its
+    depth decremented by one. For example, if the hidden branch that the miner
+    has created has a depth of ``n`` and there is another branch of depth
+    ``n - 2``, the miner discloses every block that has a depth of ``n - 1``
+    or less.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the miner&#34;&#34;&#34;
+
+        super().__init__(name)
+        self.just_forked = False
+        self.first_block = None
+        self.last_published = None
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+        default strategy would, unless the miner has hidden blocks, in which
+        case they mine on top of the last hidden block they have placed.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        if self.hidden_blocks:
+            return self.hidden_blocks[-1]
+        
+        next_blocks = struct.deep_blocks.copy()
+
+        if self.last_published is not None and self.last_published.depth == struct.depth:
+            if len(struct.deep_blocks) == 1:
+                self.just_forked = True
+            sel_block = self.last_published
+        else:
+            sel_block = next_blocks.pop()
+            self.just_forked = True
+
+        return sel_block
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+        ```SelfishMiner```, one only reveals a block if another branch has caught
+        up with its depth decremented by one.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
+        if end:
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+            return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+
+        if self.just_forked:
+            self.just_forked = False
+            self.first_block = self.hidden_blocks[-1]
+            return set()
+        elif self.hidden_blocks:
+            if self.hidden_blocks == [self.first_block]:
+                if self.first_block.depth == struct.depth:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = []
+                    self.last_published = self.first_block
+                    return set(prev_blocks)
+                else:
+                    return set()
+            else:
+                if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+                    self.last_published = max(publish, key=lambda x: x.depth)
+                    return publish
+                else:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
+                    self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
+                    return publish
+        else:
+            return set()
+
+class AlwaysForkMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the always fork strategy. At first the
+    miner mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed in the structure.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the miner&#34;&#34;&#34;
+
+        super().__init__(name)
+        self.last_block = None
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+        the miner hasn&#39;t placed any blocks. Otherwise, chooses the last block
+        placed by the miner.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        if self.last_block:
+            return self.last_block
+        else:
+            block = struct.deep_blocks.pop()
+            struct.deep_blocks.add(block)
+            return block
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
+        if self.hidden_blocks:
+            self.last_block = self.hidden_blocks[-1]
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = []
+            return set(prev_blocks)
+        else:
+            return set()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="blocksim.miners.AlwaysForkMiner"><code class="flex name class">
+<span>class <span class="ident">AlwaysForkMiner</span></span>
+<span>(</span><span><small>ancestors:</small> <a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate miner that uses the always fork strategy. At first the
+miner mines on top of the genesis block. After that, they only mine on
+top of the last block they have placed in the structure.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class AlwaysForkMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the always fork strategy. At first the
+    miner mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed in the structure.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the miner&#34;&#34;&#34;
+
+        super().__init__(name)
+        self.last_block = None
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+        the miner hasn&#39;t placed any blocks. Otherwise, chooses the last block
+        placed by the miner.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        if self.last_block:
+            return self.last_block
+        else:
+            block = struct.deep_blocks.pop()
+            struct.deep_blocks.add(block)
+            return block
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
+        if self.hidden_blocks:
+            self.last_block = self.hidden_blocks[-1]
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = []
+            return set(prev_blocks)
+        else:
+            return set()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.miners.AlwaysForkMiner.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the miner</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the miner&#34;&#34;&#34;
+
+    super().__init__(name)
+    self.last_block = None</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.AlwaysForkMiner.publish"><code class="name flex">
+<span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Choose blocks to reveal. Reveal all hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. Reveal all hidden blocks.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
+    if self.hidden_blocks:
+        self.last_block = self.hidden_blocks[-1]
+        prev_blocks = self.hidden_blocks
+        self.hidden_blocks = []
+        return set(prev_blocks)
+    else:
+        return set()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.AlwaysForkMiner.strat"><code class="name flex">
+<span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Choose a block to mine on top of. Chooses the genesis block if
+the miner hasn't placed any blocks. Otherwise, chooses the last block
+placed by the miner.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Chooses the genesis block if
+    the miner hasn&#39;t placed any blocks. Otherwise, chooses the last block
+    placed by the miner.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : blocksim.simulation.Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
+    if self.last_block:
+        return self.last_block
+    else:
+        block = struct.deep_blocks.pop()
+        struct.deep_blocks.add(block)
+        return block</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></b></code>:
+<ul class="hlist">
+<li><code><a title="blocksim.miners.Miner.add_hidden_block" href="#blocksim.miners.Miner.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_known_block" href="#blocksim.miners.Miner.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.delete_hidden_block" href="#blocksim.miners.Miner.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.inform" href="#blocksim.miners.Miner.inform">inform</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="blocksim.miners.DefaultMiner"><code class="flex name class">
+<span>class <span class="ident">DefaultMiner</span></span>
+<span>(</span><span><small>ancestors:</small> <a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate miner that uses the default strategy. When there is a tie in
+max depth, the algorithm chooses the branch that gives the current miner
+the max amount of payoff.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class DefaultMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the default strategy. When there is a tie in
+    max depth, the algorithm chooses the branch that gives the current miner
+    the max amount of payoff.&#34;&#34;&#34;
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+        structure that belongs to the branch that maximizes the current miner&#39;s
+        payoff.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        next_blocks = struct.deep_blocks.copy()
+
+        if len(next_blocks) &gt; 1:
+            while len(next_blocks) &gt; 1:
+                old_blocks = next_blocks
+                next_blocks = set()
+                for block in old_blocks:
+                    next_blocks.add(block.parent)
+
+            common_block = next_blocks.pop()
+            block_payoff = {block: struct.payoff(block, common_block, struct.base)
+                for block in struct.deep_blocks}
+
+            for block in block_payoff:
+                if self.name not in block_payoff[block]:
+                    block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
+            max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
+            max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+                block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+            sel_block = max_payoff_blocks.pop()
+        else:
+            sel_block = next_blocks.pop()
+
+        return sel_block</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.miners.DefaultMiner.strat"><code class="name flex">
+<span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Choose a block to mine on top of. Choose the deepest block in the
+structure that belongs to the branch that maximizes the current miner's
+payoff.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Choose the deepest block in the
+    structure that belongs to the branch that maximizes the current miner&#39;s
+    payoff.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : blocksim.simulation.Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
+    next_blocks = struct.deep_blocks.copy()
+
+    if len(next_blocks) &gt; 1:
+        while len(next_blocks) &gt; 1:
+            old_blocks = next_blocks
+            next_blocks = set()
+            for block in old_blocks:
+                next_blocks.add(block.parent)
+
+        common_block = next_blocks.pop()
+        block_payoff = {block: struct.payoff(block, common_block, struct.base)
+            for block in struct.deep_blocks}
+
+        for block in block_payoff:
+            if self.name not in block_payoff[block]:
+                block_payoff[block][self.name] = {&#34;block_number&#34;: 0, &#34;payoff&#34;: 0}
+
+        max_payoff = max(block_payoff, key=lambda x: block_payoff[x][self.name][&#34;payoff&#34;])
+        max_payoff_blocks = set(filter(lambda x: block_payoff[x][self.name][&#34;payoff&#34;] == \
+            block_payoff[max_payoff][self.name][&#34;payoff&#34;], struct.deep_blocks))
+        sel_block = max_payoff_blocks.pop()
+    else:
+        sel_block = next_blocks.pop()
+
+    return sel_block</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></b></code>:
+<ul class="hlist">
+<li><code><a title="blocksim.miners.Miner.__init__" href="#blocksim.miners.Miner.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_hidden_block" href="#blocksim.miners.Miner.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_known_block" href="#blocksim.miners.Miner.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.delete_hidden_block" href="#blocksim.miners.Miner.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.inform" href="#blocksim.miners.Miner.inform">inform</a></code></li>
+<li><code><a title="blocksim.miners.Miner.publish" href="#blocksim.miners.Miner.publish">publish</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="blocksim.miners.Miner"><code class="flex name class">
+<span>class <span class="ident">Miner</span></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate miner that uses the default strategy but when there is a tie in
+max depth the algorithm chooses randomly between the deepest blocks to mine.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Miner:
+
+    &#34;&#34;&#34;Generate miner that uses the default strategy but when there is a tie in
+    max depth the algorithm chooses randomly between the deepest blocks to mine.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ---------
+        
+        name : string
+            identifier for the miner. When creating a new instance of a
+            miner the method has to receive a name which will serve as
+            its identifier. This parameter has to be saved as an attribute
+            called name.&#34;&#34;&#34;
+
+        self.name = name
+        self.hidden_blocks = []
+        self.known_blocks = []
+
+    def add_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when the miner finds a new block for the
+        structure. Every block is created as hidden by default and can be
+        revealed instantly or at some point after that. The miner has to
+        save a reference to each hidden block it has created so that it can
+        reveal them in the future.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            new block that has just been created with the miner as its owner.
+            A reference to this block has to be saved for it to be published
+            later on.&#34;&#34;&#34;
+
+        self.hidden_blocks.append(block)
+
+    def delete_hidden_block(self, block):
+
+        &#34;&#34;&#34;This method is called when a miner chooses to publish a block so
+        that it can delete its reference from its hidden blocks.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+        self.hidden_blocks.remove(block)
+
+    def add_known_block(self, block):
+
+        &#34;&#34;&#34;This method is called when another miner informs the current miner of
+        a hidden block that it has found so that the current miner is able to mine
+        on top of it without it being revealed yet.
+        
+        Parameters
+        ----------
+        
+        block : blocksim.simulation.Block
+            hidden block that has been shown to the current miner.&#34;&#34;&#34;
+
+        self.known_blocks.append(block)
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;This method is called when a miner has found a new block for the structure
+        for it to choose its parent block. In other words, the miner has to choose
+        on top of which block it will place its next found block. This method chooses
+        a random block from the deepest blocks in the structure.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            block on top of which the current miner will place its next found block&#34;&#34;&#34;
+
+        return sample(struct.deep_blocks, 1)[0]
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+        the miner to return the hidden blocks that it wants to publish in the form of
+        a set. This miner publishes each block instantly.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the state
+            or because the simulation is ending.
+            
+        Results
+        -------
+        
+        blocks : set
+            set containing the blocks that are to be published.&#34;&#34;&#34;
+
+        prev_blocks = self.hidden_blocks
+        self.hidden_blocks = []
+        return set(prev_blocks)
+
+    def inform(self, struct, end=False):
+
+        &#34;&#34;&#34;This method is called when the state of the structure has changed
+        and expects the miner to return a dictionary with the pairs
+        ``miner_name: set()``, where the set contains the hidden blocks
+        to be informed to the miner with name ``miner_name``. This miner
+        doesn&#39;t use a communication strategy and it doesn&#39;t inform others
+        of its blocks.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation containing the blockchain.
+        end : bool
+            flag indicating whether the method is being called on update of the
+            state or because the simulation is ending.
+            
+        Results
+        -------
+        
+        inform : dict
+            dictionary with the pairs ``miner_name: set()``, where the set
+            contains the hidden blocks to be informed to the miner with name
+            ``miner_name``.&#34;&#34;&#34;
+
+        return dict()</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="blocksim.miners.DefaultMiner" href="#blocksim.miners.DefaultMiner">DefaultMiner</a></li>
+<li><a title="blocksim.miners.SelfishMiner" href="#blocksim.miners.SelfishMiner">SelfishMiner</a></li>
+<li><a title="blocksim.miners.AlwaysForkMiner" href="#blocksim.miners.AlwaysForkMiner">AlwaysForkMiner</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.miners.Miner.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the miner. When creating a new instance of a
+miner the method has to receive a name which will serve as
+its identifier. This parameter has to be saved as an attribute
+called name.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ---------
+    
+    name : string
+        identifier for the miner. When creating a new instance of a
+        miner the method has to receive a name which will serve as
+        its identifier. This parameter has to be saved as an attribute
+        called name.&#34;&#34;&#34;
+
+    self.name = name
+    self.hidden_blocks = []
+    self.known_blocks = []</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.add_hidden_block"><code class="name flex">
+<span>def <span class="ident">add_hidden_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the miner finds a new block for the
+structure. Every block is created as hidden by default and can be
+revealed instantly or at some point after that. The miner has to
+save a reference to each hidden block it has created so that it can
+reveal them in the future.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>new block that has just been created with the miner as its owner.
+A reference to this block has to be saved for it to be published
+later on.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_hidden_block(self, block):
+
+    &#34;&#34;&#34;This method is called when the miner finds a new block for the
+    structure. Every block is created as hidden by default and can be
+    revealed instantly or at some point after that. The miner has to
+    save a reference to each hidden block it has created so that it can
+    reveal them in the future.
+    
+    Parameters
+    ----------
+    
+    block : blocksim.simulation.Block
+        new block that has just been created with the miner as its owner.
+        A reference to this block has to be saved for it to be published
+        later on.&#34;&#34;&#34;
+
+    self.hidden_blocks.append(block)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.add_known_block"><code class="name flex">
+<span>def <span class="ident">add_known_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when another miner informs the current miner of
+a hidden block that it has found so that the current miner is able to mine
+on top of it without it being revealed yet.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>hidden block that has been shown to the current miner.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_known_block(self, block):
+
+    &#34;&#34;&#34;This method is called when another miner informs the current miner of
+    a hidden block that it has found so that the current miner is able to mine
+    on top of it without it being revealed yet.
+    
+    Parameters
+    ----------
+    
+    block : blocksim.simulation.Block
+        hidden block that has been shown to the current miner.&#34;&#34;&#34;
+
+    self.known_blocks.append(block)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.delete_hidden_block"><code class="name flex">
+<span>def <span class="ident">delete_hidden_block</span></span>(<span>self, block)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when a miner chooses to publish a block so
+that it can delete its reference from its hidden blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>published block to be removed from hidden blocks.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def delete_hidden_block(self, block):
+
+    &#34;&#34;&#34;This method is called when a miner chooses to publish a block so
+    that it can delete its reference from its hidden blocks.
+    
+    Parameters
+    ----------
+    
+    block : blocksim.simulation.Block
+        published block to be removed from hidden blocks.&#34;&#34;&#34;
+
+    self.hidden_blocks.remove(block)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.inform"><code class="name flex">
+<span>def <span class="ident">inform</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the state of the structure has changed
+and expects the miner to return a dictionary with the pairs
+<code>miner_name: set()</code>, where the set contains the hidden blocks
+to be informed to the miner with name <code>miner_name</code>. This miner
+doesn't use a communication strategy and it doesn't inform others
+of its blocks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>blocksim.simulation.Structure</code></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called on update of the
+state or because the simulation is ending.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>inform</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary with the pairs <code>miner_name: set()</code>, where the set
+contains the hidden blocks to be informed to the miner with name
+<code>miner_name</code>.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def inform(self, struct, end=False):
+
+    &#34;&#34;&#34;This method is called when the state of the structure has changed
+    and expects the miner to return a dictionary with the pairs
+    ``miner_name: set()``, where the set contains the hidden blocks
+    to be informed to the miner with name ``miner_name``. This miner
+    doesn&#39;t use a communication strategy and it doesn&#39;t inform others
+    of its blocks.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation containing the blockchain.
+    end : bool
+        flag indicating whether the method is being called on update of the
+        state or because the simulation is ending.
+        
+    Results
+    -------
+    
+    inform : dict
+        dictionary with the pairs ``miner_name: set()``, where the set
+        contains the hidden blocks to be informed to the miner with name
+        ``miner_name``.&#34;&#34;&#34;
+
+    return dict()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.publish"><code class="name flex">
+<span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when the state of the structure has changed and expects
+the miner to return the hidden blocks that it wants to publish in the form of
+a set. This miner publishes each block instantly.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called on update of the state
+or because the simulation is ending.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing the blocks that are to be published.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;This method is called when the state of the structure has changed and expects
+    the miner to return the hidden blocks that it wants to publish in the form of
+    a set. This miner publishes each block instantly.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation containing the blockchain.
+    end : bool
+        flag indicating whether the method is being called on update of the state
+        or because the simulation is ending.
+        
+    Results
+    -------
+    
+    blocks : set
+        set containing the blocks that are to be published.&#34;&#34;&#34;
+
+    prev_blocks = self.hidden_blocks
+    self.hidden_blocks = []
+    return set(prev_blocks)</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.Miner.strat"><code class="name flex">
+<span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method is called when a miner has found a new block for the structure
+for it to choose its parent block. In other words, the miner has to choose
+on top of which block it will place its next found block. This method chooses
+a random block from the deepest blocks in the structure.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation containing the blockchain.</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>block on top of which the current miner will place its next found block</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;This method is called when a miner has found a new block for the structure
+    for it to choose its parent block. In other words, the miner has to choose
+    on top of which block it will place its next found block. This method chooses
+    a random block from the deepest blocks in the structure.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation containing the blockchain.
+        
+    Results
+    -------
+    
+    block : blocksim.simulation.Block
+        block on top of which the current miner will place its next found block&#34;&#34;&#34;
+
+    return sample(struct.deep_blocks, 1)[0]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="blocksim.miners.SelfishMiner"><code class="flex name class">
+<span>class <span class="ident">SelfishMiner</span></span>
+<span>(</span><span><small>ancestors:</small> <a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate miner that uses the selfish strategy. Once the miner discovers
+a new block, they don't reveal it unless another branch catches up to its
+depth decremented by one. For example, if the hidden branch that the miner
+has created has a depth of <code>n</code> and there is another branch of depth
+<code>n - 2</code>, the miner discloses every block that has a depth of <code>n - 1</code>
+or less.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class SelfishMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the selfish strategy. Once the miner discovers
+    a new block, they don&#39;t reveal it unless another branch catches up to its
+    depth decremented by one. For example, if the hidden branch that the miner
+    has created has a depth of ``n`` and there is another branch of depth
+    ``n - 2``, the miner discloses every block that has a depth of ``n - 1``
+    or less.&#34;&#34;&#34;
+
+    def __init__(self, name):
+
+        &#34;&#34;&#34;Parameters
+        ----------
+        
+        name : string
+            identifier for the miner&#34;&#34;&#34;
+
+        super().__init__(name)
+        self.just_forked = False
+        self.first_block = None
+        self.last_published = None
+
+    def strat(self, struct):
+
+        &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+        default strategy would, unless the miner has hidden blocks, in which
+        case they mine on top of the last hidden block they have placed.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+            
+        Results
+        -------
+        
+        block : blocksim.simulation.Block
+            chosen block to mine on top of&#34;&#34;&#34;
+
+        if self.hidden_blocks:
+            return self.hidden_blocks[-1]
+        
+        next_blocks = struct.deep_blocks.copy()
+
+        if self.last_published is not None and self.last_published.depth == struct.depth:
+            if len(struct.deep_blocks) == 1:
+                self.just_forked = True
+            sel_block = self.last_published
+        else:
+            sel_block = next_blocks.pop()
+            self.just_forked = True
+
+        return sel_block
+
+    def publish(self, struct, end=False):
+
+        &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+        ```SelfishMiner```, one only reveals a block if another branch has caught
+        up with its depth decremented by one.
+        
+        Parameters
+        ----------
+        
+        struct : blocksim.simulation.Structure
+            data structure of the simulation
+        end : bool
+            flag indicating whether the method is being called after the
+            simulation has ended or before that
+            
+        Results
+        -------
+        
+        pub_blocks : set
+            set containing blocks to be revealed&#34;&#34;&#34;
+
+        if end:
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+            return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+
+        if self.just_forked:
+            self.just_forked = False
+            self.first_block = self.hidden_blocks[-1]
+            return set()
+        elif self.hidden_blocks:
+            if self.hidden_blocks == [self.first_block]:
+                if self.first_block.depth == struct.depth:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = []
+                    self.last_published = self.first_block
+                    return set(prev_blocks)
+                else:
+                    return set()
+            else:
+                if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+                    self.last_published = max(publish, key=lambda x: x.depth)
+                    return publish
+                else:
+                    prev_blocks = self.hidden_blocks
+                    self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                    publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
+                    self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
+                    return publish
+        else:
+            return set()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="blocksim.miners.SelfishMiner.__init__"><code class="name flex">
+<span>def <span class="ident">__init__</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>identifier for the miner</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def __init__(self, name):
+
+    &#34;&#34;&#34;Parameters
+    ----------
+    
+    name : string
+        identifier for the miner&#34;&#34;&#34;
+
+    super().__init__(name)
+    self.just_forked = False
+    self.first_block = None
+    self.last_published = None</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.SelfishMiner.publish"><code class="name flex">
+<span>def <span class="ident">publish</span></span>(<span>self, struct, end=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Choose blocks to reveal. As explained in the documentation for
+<code>&lt;a title="blocksim.miners.SelfishMiner" href="#blocksim.miners.SelfishMiner"&gt;`SelfishMiner`&lt;/a&gt;</code>, one only reveals a block if another branch has caught
+up with its depth decremented by one.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<code>blocksim.simulation.Structure</code></dt>
+<dd>data structure of the simulation</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag indicating whether the method is being called after the
+simulation has ended or before that</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>pub_blocks</code></strong> :&ensp;<code>set</code></dt>
+<dd>set containing blocks to be revealed</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def publish(self, struct, end=False):
+
+    &#34;&#34;&#34;Choose blocks to reveal. As explained in the documentation for
+    ```SelfishMiner```, one only reveals a block if another branch has caught
+    up with its depth decremented by one.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation
+    end : bool
+        flag indicating whether the method is being called after the
+        simulation has ended or before that
+        
+    Results
+    -------
+    
+    pub_blocks : set
+        set containing blocks to be revealed&#34;&#34;&#34;
+
+    if end:
+        prev_blocks = self.hidden_blocks
+        self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+        return set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+
+    if self.just_forked:
+        self.just_forked = False
+        self.first_block = self.hidden_blocks[-1]
+        return set()
+    elif self.hidden_blocks:
+        if self.hidden_blocks == [self.first_block]:
+            if self.first_block.depth == struct.depth:
+                prev_blocks = self.hidden_blocks
+                self.hidden_blocks = []
+                self.last_published = self.first_block
+                return set(prev_blocks)
+            else:
+                return set()
+        else:
+            if self.hidden_blocks[-1].depth &lt;= struct.depth + 1:
+                prev_blocks = self.hidden_blocks
+                self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden(), self.hidden_blocks))
+                publish = set(filter(lambda x: not x.parent.is_hidden(), prev_blocks))
+                self.last_published = max(publish, key=lambda x: x.depth)
+                return publish
+            else:
+                prev_blocks = self.hidden_blocks
+                self.hidden_blocks = list(filter(lambda x: x.parent.is_hidden() or x.depth &gt; struct.depth, self.hidden_blocks))
+                publish = set(filter(lambda x: not x.parent.is_hidden() and x.depth &lt;= struct.depth, prev_blocks))
+                self.last_published = max(publish, default=self.last_published, key=lambda x: x.depth)
+                return publish
+    else:
+        return set()</code></pre>
+</details>
+</dd>
+<dt id="blocksim.miners.SelfishMiner.strat"><code class="name flex">
+<span>def <span class="ident">strat</span></span>(<span>self, struct)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Choose a block to mine on top of. Chooses the same way that the
+default strategy would, unless the miner has hidden blocks, in which
+case they mine on top of the last hidden block they have placed.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>struct</code></strong> :&ensp;<a title="blocksim.simulation.Structure" href="simulation.html#blocksim.simulation.Structure"><code>Structure</code></a></dt>
+<dd>data structure of the simulation</dd>
+</dl>
+<h2 id="results">Results</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<a title="blocksim.simulation.Block" href="simulation.html#blocksim.simulation.Block"><code>Block</code></a></dt>
+<dd>chosen block to mine on top of</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def strat(self, struct):
+
+    &#34;&#34;&#34;Choose a block to mine on top of. Chooses the same way that the
+    default strategy would, unless the miner has hidden blocks, in which
+    case they mine on top of the last hidden block they have placed.
+    
+    Parameters
+    ----------
+    
+    struct : blocksim.simulation.Structure
+        data structure of the simulation
+        
+    Results
+    -------
+    
+    block : blocksim.simulation.Block
+        chosen block to mine on top of&#34;&#34;&#34;
+
+    if self.hidden_blocks:
+        return self.hidden_blocks[-1]
+    
+    next_blocks = struct.deep_blocks.copy()
+
+    if self.last_published is not None and self.last_published.depth == struct.depth:
+        if len(struct.deep_blocks) == 1:
+            self.just_forked = True
+        sel_block = self.last_published
+    else:
+        sel_block = next_blocks.pop()
+        self.just_forked = True
+
+    return sel_block</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></b></code>:
+<ul class="hlist">
+<li><code><a title="blocksim.miners.Miner.add_hidden_block" href="#blocksim.miners.Miner.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_known_block" href="#blocksim.miners.Miner.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.delete_hidden_block" href="#blocksim.miners.Miner.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.inform" href="#blocksim.miners.Miner.inform">inform</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="blocksim" href="index.html">blocksim</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="blocksim.miners.AlwaysForkMiner" href="#blocksim.miners.AlwaysForkMiner">AlwaysForkMiner</a></code></h4>
+<ul class="">
+<li><code><a title="blocksim.miners.AlwaysForkMiner.__init__" href="#blocksim.miners.AlwaysForkMiner.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.miners.AlwaysForkMiner.publish" href="#blocksim.miners.AlwaysForkMiner.publish">publish</a></code></li>
+<li><code><a title="blocksim.miners.AlwaysForkMiner.strat" href="#blocksim.miners.AlwaysForkMiner.strat">strat</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.miners.DefaultMiner" href="#blocksim.miners.DefaultMiner">DefaultMiner</a></code></h4>
+<ul class="">
+<li><code><a title="blocksim.miners.DefaultMiner.strat" href="#blocksim.miners.DefaultMiner.strat">strat</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></code></h4>
+<ul class="two-column">
+<li><code><a title="blocksim.miners.Miner.__init__" href="#blocksim.miners.Miner.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_hidden_block" href="#blocksim.miners.Miner.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_known_block" href="#blocksim.miners.Miner.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.delete_hidden_block" href="#blocksim.miners.Miner.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.inform" href="#blocksim.miners.Miner.inform">inform</a></code></li>
+<li><code><a title="blocksim.miners.Miner.publish" href="#blocksim.miners.Miner.publish">publish</a></code></li>
+<li><code><a title="blocksim.miners.Miner.strat" href="#blocksim.miners.Miner.strat">strat</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="blocksim.miners.SelfishMiner" href="#blocksim.miners.SelfishMiner">SelfishMiner</a></code></h4>
+<ul class="">
+<li><code><a title="blocksim.miners.SelfishMiner.__init__" href="#blocksim.miners.SelfishMiner.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.miners.SelfishMiner.publish" href="#blocksim.miners.SelfishMiner.publish">publish</a></code></li>
+<li><code><a title="blocksim.miners.SelfishMiner.strat" href="#blocksim.miners.SelfishMiner.strat">strat</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.5.3</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

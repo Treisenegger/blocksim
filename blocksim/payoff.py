@@ -1,5 +1,5 @@
 """Standard payoff functions for conducting the experiments. Each function receives
-a starting block and an ending block and returns the payoff corresponding to each player
+a starting block and an ending block and returns the payoff corresponding to each miner
 for the branch between both blocks. The ``start_block`` is the deepest block in the
 branch and the ``end_block`` is the shallowest."""
 
@@ -25,7 +25,7 @@ def constant_payoff(start_block, end_block, base):
     
     payoff_dict : dict
         dictionary that contains the information regarding payoff and number
-        of blocks owned by each player in the branch"""
+        of blocks owned by each miner in the branch"""
 
     payoff_dict = {}
     
@@ -87,7 +87,7 @@ def alpha_beta_step_payoff(alpha, beta, step):
         
         payoff_dict : dict
             dictionary that contains the information regarding payoff and number
-            of blocks owned by each player in the branch"""
+            of blocks owned by each miner in the branch"""
 
         payoff_dict = {}
         
