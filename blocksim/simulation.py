@@ -1,8 +1,5 @@
 """Classes consisting of the main logic behind the simulations."""
 
-import numpy as np
-
-from types import MethodType
 from functools import reduce
 from random import randint
 
