@@ -1,6 +1,6 @@
 # BlockSim
 
-BlockSim is a Python library for conducting simulations to test the efficiency of different mining strategies on the Bitcoin structure.
+BlockSim is a Python 3.6 library for conducting simulations to test the efficiency of different mining strategies on the Bitcoin structure.
 
 ## Dependencies
 
@@ -13,6 +13,10 @@ To install the dependencies needed for running BlockSim, run the command
 In this section we give an example of a miner implementation. This miner will implement a strategy through which it will fork only if the deepest blocks in the structure are at most two levels deeper than its last placed block. Otherwise, it will randomly mine on top of one of the deepest blocks in the structure. Also, it will publish every block instantly and will neither communicate the existence of hidden blocks nor use any blocks it is informed of.
 
 ```python
+from random import sample
+
+from blocksim import Miner
+
 class ForkTwoDistanceMiner(Miner):
     def __init__(self, name):
         super().__init__(name)
@@ -49,8 +53,10 @@ if __name__ == "__main__":
 
     h = {'Fork Two Distance Miner': 1,
         'Default Random Miner': 1}
-    
+
     sim = Simulation(players, h, 10000, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1))
     sim.simulate()
     sim.print_results()
 ```
+
+Both of the previous examples are available in the example folder for testing.

@@ -386,31 +386,3 @@ class AlwaysForkMiner(Miner):
             return set(prev_blocks)
         else:
             return set()
-
-class ForkTwoDistanceMiner(Miner):
-
-    """Generate miner that uses the fork with giveup distance of two. At first
-    the miner mines on top of the genesis block. After that, they only mine on
-    top of the last block they have placed unless the depth of the structure
-    is higher than its last block's depth incremented in two, in which case
-    it mines on top of one of the deepest blocks of the structure randomly.
-    This miner is used in the example displayed in the `README.md` file."""
-
-    def __init__(self, name):
-        super().__init__(name)
-        self.last_block = None
-
-    def strat(self, struct):
-        if self.last_block is None or self.last_block.depth < struct.depth - 2:
-            return sample(struct.deep_blocks, 1)[0]
-        else:
-            return self.last_block
-
-    def publish(self, struct, end=False):
-        if self.hidden_blocks:
-            self.last_block = self.hidden_blocks[-1]
-            prev_blocks = self.hidden_blocks
-            self.hidden_blocks = []
-            return set(prev_blocks)
-        else:
-            return set()
