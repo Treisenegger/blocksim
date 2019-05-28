@@ -1,5 +1,6 @@
-from random import sample
 import sys
+from random import sample
+
 sys.path.append("./")
 
 from blocksim import Miner

@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("./")
 
 from blocksim import Miner, Simulation, alpha_beta_step_payoff
