@@ -36,3 +36,21 @@ class ForkTwoDistanceMiner(Miner):
 
 ## Running the simulation
 
+To run the simulation we need to import the miners we are going to use, the ```Simulation``` object and the payoff function we plan on setting. Afterwards, we have to create a list containing all instatiations of the different miners with their respective names and a dictionary containing the pairs ```miner_name: hash_power```. Lastly, we need to instantiate the ```Simulation``` object using the miner list, the hash power dictionary, the step number, the safe distance and the payoff function as inputs. After this, we just need to execute the ```simulate``` and ```print_results``` methods on the ```Simulation``` object to run the simulation. An example of this process is displayed below, using the same miner implemented above, which is also implemented in the miners file which can be imported as part of the package.
+
+```python
+from blocksim import Miner, ForkTwoDistanceMiner
+
+if __name__ == "__main__":
+    players = []
+
+    players.append(ForkTwoDistanceMiner('Fork Two Distance Miner'))
+    players.append(Miner('Default Random Miner'))
+
+    h = {'Fork Two Distance Miner': 1,
+        'Default Random Miner': 1}
+    
+    sim = Simulation(players, h, 10000, safe_dist=0, payoff=alpha_beta_step_payoff(1, 1, 1))
+    sim.simulate()
+    sim.print_results()
+```
