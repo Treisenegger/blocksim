@@ -423,6 +423,34 @@ class AlwaysForkMiner(Miner):
             self.hidden_blocks = []
             return set(prev_blocks)
         else:
+            return set()
+
+class ForkTwoDistanceMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the fork with giveup distance of two. At first
+    the miner mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed unless the depth of the structure
+    is higher than its last block&#39;s depth incremented in two, in which case
+    it mines on top of one of the deepest blocks of the structure randomly.
+    This miner is used in the example displayed in the `README.md` file.&#34;&#34;&#34;
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.last_block = None
+
+    def strat(self, struct):
+        if self.last_block is None or self.last_block.depth &lt; struct.depth - 2:
+            return sample(struct.deep_blocks, 1)[0]
+        else:
+            return self.last_block
+
+    def publish(self, struct, end=False):
+        if self.hidden_blocks:
+            self.last_block = self.hidden_blocks[-1]
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = []
+            return set(prev_blocks)
+        else:
             return set()</code></pre>
 </details>
 </section>
@@ -786,6 +814,62 @@ payoff.</p>
 </li>
 </ul>
 </dd>
+<dt id="blocksim.miners.ForkTwoDistanceMiner"><code class="flex name class">
+<span>class <span class="ident">ForkTwoDistanceMiner</span></span>
+<span>(</span><span><small>ancestors:</small> <a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Generate miner that uses the fork with giveup distance of two. At first
+the miner mines on top of the genesis block. After that, they only mine on
+top of the last block they have placed unless the depth of the structure
+is higher than its last block's depth incremented in two, in which case
+it mines on top of one of the deepest blocks of the structure randomly.
+This miner is used in the example displayed in the <code>README.md</code> file.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ForkTwoDistanceMiner(Miner):
+
+    &#34;&#34;&#34;Generate miner that uses the fork with giveup distance of two. At first
+    the miner mines on top of the genesis block. After that, they only mine on
+    top of the last block they have placed unless the depth of the structure
+    is higher than its last block&#39;s depth incremented in two, in which case
+    it mines on top of one of the deepest blocks of the structure randomly.
+    This miner is used in the example displayed in the `README.md` file.&#34;&#34;&#34;
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.last_block = None
+
+    def strat(self, struct):
+        if self.last_block is None or self.last_block.depth &lt; struct.depth - 2:
+            return sample(struct.deep_blocks, 1)[0]
+        else:
+            return self.last_block
+
+    def publish(self, struct, end=False):
+        if self.hidden_blocks:
+            self.last_block = self.hidden_blocks[-1]
+            prev_blocks = self.hidden_blocks
+            self.hidden_blocks = []
+            return set(prev_blocks)
+        else:
+            return set()</code></pre>
+</details>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></b></code>:
+<ul class="hlist">
+<li><code><a title="blocksim.miners.Miner.__init__" href="#blocksim.miners.Miner.__init__">__init__</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_hidden_block" href="#blocksim.miners.Miner.add_hidden_block">add_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.add_known_block" href="#blocksim.miners.Miner.add_known_block">add_known_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.delete_hidden_block" href="#blocksim.miners.Miner.delete_hidden_block">delete_hidden_block</a></code></li>
+<li><code><a title="blocksim.miners.Miner.inform" href="#blocksim.miners.Miner.inform">inform</a></code></li>
+<li><code><a title="blocksim.miners.Miner.publish" href="#blocksim.miners.Miner.publish">publish</a></code></li>
+<li><code><a title="blocksim.miners.Miner.strat" href="#blocksim.miners.Miner.strat">strat</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="blocksim.miners.Miner"><code class="flex name class">
 <span>class <span class="ident">Miner</span></span>
 </code></dt>
@@ -938,6 +1022,7 @@ max depth the algorithm chooses randomly between the deepest blocks to mine.</p>
 <li><a title="blocksim.miners.DefaultMiner" href="#blocksim.miners.DefaultMiner">DefaultMiner</a></li>
 <li><a title="blocksim.miners.SelfishMiner" href="#blocksim.miners.SelfishMiner">SelfishMiner</a></li>
 <li><a title="blocksim.miners.AlwaysForkMiner" href="#blocksim.miners.AlwaysForkMiner">AlwaysForkMiner</a></li>
+<li><a title="blocksim.miners.ForkTwoDistanceMiner" href="#blocksim.miners.ForkTwoDistanceMiner">ForkTwoDistanceMiner</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -1535,6 +1620,9 @@ case they mine on top of the last hidden block they have placed.</p>
 <ul class="">
 <li><code><a title="blocksim.miners.DefaultMiner.strat" href="#blocksim.miners.DefaultMiner.strat">strat</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="blocksim.miners.ForkTwoDistanceMiner" href="#blocksim.miners.ForkTwoDistanceMiner">ForkTwoDistanceMiner</a></code></h4>
 </li>
 <li>
 <h4><code><a title="blocksim.miners.Miner" href="#blocksim.miners.Miner">Miner</a></code></h4>
